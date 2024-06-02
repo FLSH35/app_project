@@ -1,7 +1,13 @@
+[[plugins]]
+
+  package = "netlify-plugin-flutter"
+
+   [plugins.inputs]
+    channel = "stable"
+
+
 [build]
   base = "personality_score"
   command = "flutter build web"
-  publish = "personality_score/build/web"
+  publish = "personality_score/build/web --release"
 
-[[plugins]]
-  package = "@netlify/plugin-flutter"
