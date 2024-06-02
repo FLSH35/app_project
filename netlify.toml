@@ -1,0 +1,7 @@
+[build]
+  base = "personality_score"
+  command = "flutter build web"
+  publish = "personality_score/build/web"
+
+[[plugins]]
+  package = "@netlify/plugin-flutter"
