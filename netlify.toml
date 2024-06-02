@@ -8,6 +8,6 @@
 
 [build]
   base = "personality_score"
-  command = "flutter build web"
-  publish = "personality_score/build/web --release"
+  command = "flutter build web --release"
+  publish = "personality_score/build/web"
 
