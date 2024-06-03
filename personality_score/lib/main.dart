@@ -29,20 +29,23 @@ class QuestionnaireModel with ChangeNotifier {
   int _currentQuestionIndex = 0;
   int _totalScore = 0;
   int _currentPage = 0;
+  List<int?> _answers = [];
 
   List<Question> get questions => _questions;
   int get currentQuestionIndex => _currentQuestionIndex;
   int get totalScore => _totalScore;
   int get currentPage => _currentPage;
+  List<int?> get answers => _answers;
 
   Future<void> loadQuestions(String fileName) async {
     _questions = await _questionService.loadQuestions(fileName);
+    _answers = List<int?>.filled(_questions.length, null);
     notifyListeners();
   }
 
-  void answerQuestion(String value) {
-    _totalScore += int.parse(value);
-    _currentQuestionIndex++;
+  void answerQuestion(int index, int value) {
+    _answers[index] = value;
+    _totalScore = _answers.where((a) => a != null).fold(0, (sum, a) => sum + a!);
     notifyListeners();
   }
 
@@ -62,16 +65,13 @@ class QuestionnaireModel with ChangeNotifier {
     _totalScore = 0;
     _currentQuestionIndex = 0;
     _currentPage = 0;
+    _answers = List<int?>.filled(_questions.length, null);
     notifyListeners();
   }
 
-  String getResultLink() {
-    int maxScore = _questions.length * 3;
-    if (_totalScore >= maxScore * 0.6) {
-      return "https://forms.gle/8UAagk3ukD1v1X1x6"; // Link to Conscious Competence
-    } else {
-      return "https://forms.gle/2BBfP6iXnnqkFUDk8"; // Link to Incompetence
-    }
+  double getProgress() {
+    if (_questions.isEmpty) return 0.0;
+    return (_currentPage + 1) / (_questions.length / 7).ceil();
   }
 }
 
@@ -95,25 +95,41 @@ class QuestionnaireScreen extends StatelessWidget {
 
           return Column(
             children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Center(
+                  child: Text(
+                    'Personality Score',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              LinearProgressIndicator(
+                value: model.getProgress(),
+                backgroundColor: Colors.grey[200],
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+              ),
               Expanded(
                 child: ListView.builder(
                   itemCount: currentQuestions.length,
                   itemBuilder: (context, index) {
                     Question question = currentQuestions[index];
+                    int questionIndex = start + index;
                     return ListTile(
-                      title: Text(question.text),
+                      title: Center(child: Text(question.text)),
                       subtitle: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: List.generate(7, (i) {
-                          int value = i - 3; // Values range from -3 to +3
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: List.generate(4, (i) {
                           return Expanded(
                             child: RadioListTile<int>(
-                              value: value,
-                              groupValue: null, // Needs to be set to the current answer's value
+                              value: i,
+                              groupValue: model.answers[questionIndex],
                               onChanged: (val) {
-                                model.answerQuestion(val.toString());
+                                if (val != null) {
+                                  model.answerQuestion(questionIndex, val);
+                                }
                               },
-                              title: Text((value + 3).toString()), // Display 1-7 instead of -3 to +3
+                              title: Center(child: Text(i.toString())), // Display 0-3
                             ),
                           );
                         }),
@@ -138,9 +154,23 @@ class QuestionnaireScreen extends StatelessWidget {
                   if (end >= model.questions.length)
                     ElevatedButton(
                       onPressed: () {
-                        String resultLink = model.getResultLink();
-                        // Implement email sending logic here using resultLink
-                        print('Result Link: $resultLink');
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text('Result'),
+                              content: Text('Your total score is: ${model.totalScore}'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: Text('OK'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
                       },
                       child: Text('Finish'),
                     ),
