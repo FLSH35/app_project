@@ -30,12 +30,18 @@ class QuestionnaireModel with ChangeNotifier {
   int _totalScore = 0;
   int _currentPage = 0;
   List<int?> _answers = [];
+  String? _personalityType;
+  int _progress = 0;
+  bool _isFirstTestCompleted = false;
 
   List<Question> get questions => _questions;
   int get currentQuestionIndex => _currentQuestionIndex;
   int get totalScore => _totalScore;
   int get currentPage => _currentPage;
   List<int?> get answers => _answers;
+  String? get personalityType => _personalityType;
+  int get progress => _progress;
+  bool get isFirstTestCompleted => _isFirstTestCompleted;
 
   Future<void> loadQuestions(String fileName) async {
     _questions = await _questionService.loadQuestions(fileName);
@@ -49,7 +55,7 @@ class QuestionnaireModel with ChangeNotifier {
     notifyListeners();
   }
 
-  void nextPage() {
+  void nextPage(BuildContext context) {
     _currentPage++;
     notifyListeners();
   }
@@ -65,13 +71,48 @@ class QuestionnaireModel with ChangeNotifier {
     _totalScore = 0;
     _currentQuestionIndex = 0;
     _currentPage = 0;
+    _progress = 0;
     _answers = List<int?>.filled(_questions.length, null);
+    _personalityType = null;
+    _isFirstTestCompleted = false;
     notifyListeners();
   }
 
   double getProgress() {
     if (_questions.isEmpty) return 0.0;
     return (_currentPage + 1) / (_questions.length / 7).ceil();
+  }
+
+  void completeFirstTest(BuildContext context) {
+    _isFirstTestCompleted = true;
+    String message = 'Your total score is: $_totalScore\n\nProceed to the next set of questions to determine your specific personality type.';
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Total Score'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                loadQuestions('bewusstsein.json');
+                _currentPage = 0;
+                _totalScore = 0;
+                _answers = List<int?>.filled(_questions.length, null);
+                notifyListeners();
+                Navigator.of(context).pop();
+              },
+              child: Text('Next'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void setPersonalityType(String type) {
+    _personalityType = type;
+    notifyListeners();
   }
 }
 
@@ -148,10 +189,15 @@ class QuestionnaireScreen extends StatelessWidget {
                     ),
                   if (end < model.questions.length)
                     ElevatedButton(
-                      onPressed: () => model.nextPage(),
+                      onPressed: () => model.nextPage(context),
                       child: Text('Next'),
                     ),
-                  if (end >= model.questions.length)
+                  if (end >= model.questions.length && !model.isFirstTestCompleted)
+                    ElevatedButton(
+                      onPressed: () => model.completeFirstTest(context),
+                      child: Text('Complete First Test'),
+                    ),
+                  if (end >= model.questions.length && model.isFirstTestCompleted)
                     ElevatedButton(
                       onPressed: () {
                         showDialog(
@@ -159,7 +205,14 @@ class QuestionnaireScreen extends StatelessWidget {
                           builder: (BuildContext context) {
                             return AlertDialog(
                               title: Text('Result'),
-                              content: Text('Your total score is: ${model.totalScore}'),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text('Your total score is: ${model.totalScore}'),
+                                  if (model.personalityType != null)
+                                    Image.asset('assets/${model.personalityType}.webp'), // Display personality image
+                                ],
+                              ),
                               actions: [
                                 TextButton(
                                   onPressed: () {
