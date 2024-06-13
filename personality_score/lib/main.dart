@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'services/question_service.dart';
 import 'models/question.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:animations/animations.dart';
 
 void main() {
   runApp(MyApp());
