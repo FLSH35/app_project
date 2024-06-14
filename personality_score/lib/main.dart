@@ -101,7 +101,7 @@ class QuestionnaireModel with ChangeNotifier {
       teamCharacters = ["Life Artist.webp", "Individual.webp", "Adventurer.webp", "Traveller.webp"];
       nextSet = 'BewussteKompetenz';
     } else {
-      message = 'Your total score is: $_totalScore\n\nYou belong to the following team:';
+      message = 'Im Bereich der Kompetenz hast du folgende Punktzahl: $_totalScore\n\n  Jetzt kennst du dein Team. Wenn du dein wahres Ich kennenlernen willst, fülle noch die nächsten Fragen aus!';
       teamCharacters = ["Resident.webp", "Explorer.webp", "Reacher.webp", "Anonymous.webp"];
       nextSet = 'BewussteInkompetenz';
     }
