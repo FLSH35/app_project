@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:lottie/lottie.dart'; // Import Lottie package
 import 'services/question_service.dart';
 import 'models/question.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:animations/animations.dart';
 
 void main() {
   runApp(MyApp());
@@ -94,14 +94,16 @@ class QuestionnaireModel with ChangeNotifier {
     List<String> teamCharacters;
     String nextSet;
 
-    if (_totalScore > 50) {
-      message = 'Your total score is: $_totalScore\n\nYou belong to the following team:';
+    int possibleScore = _questions.length * 3; // Calculate possible score for the current set
+
+    if (_totalScore > (possibleScore * 0.5)) { // Check if total score is more than 50% of possible score
+      message = 'Im Bereich der Kompetenz hast du folgende Punktzahl: $_totalScore\n\n Jetzt kennst du dein Team. Wenn du dein wahres Ich kennenlernen willst, fülle noch die nächsten Fragen aus!';
       teamCharacters = ["Life Artist.webp", "Individual.webp", "Adventurer.webp", "Traveller.webp"];
-      nextSet = 'BewussteInkompetenz';
+      nextSet = 'BewussteKompetenz';
     } else {
       message = 'Your total score is: $_totalScore\n\nYou belong to the following team:';
-      teamCharacters = ["resident.webp", "explorer.webp", "reacher.webp", "Anonymous.webp"];
-      nextSet = 'BewussteKompetenz';
+      teamCharacters = ["Resident.webp", "Explorer.webp", "Reacher.webp", "Anonymous.webp"];
+      nextSet = 'BewussteInkompetenz';
     }
 
     showDialog(
@@ -144,25 +146,27 @@ class QuestionnaireModel with ChangeNotifier {
     List<String> teamCharacters;
     String nextSet;
 
-    if (_totalScore > 50) {
-      if (_questions.first.set == 'BewussteInkompetenz') {
-        message = 'Your total score is: $_totalScore\n\nYou belong to the following team:';
+    int possibleScore = _questions.length * 3; // Calculate possible score for the current set
+
+    if (_totalScore > (possibleScore * 0.5)) { // Check if total score is more than 50% of possible score
+      if (_questions.first.set == 'BewussteKompetenz') {
+        message = 'Your total score is: $_totalScore\n\n Bist du ein Life Artist oder ein Adventurer? Das ist ein riesiger Unteschied. Noch 5 Minuten und du findest deine Stärken und blinden Flecken heraus!';
         teamCharacters = ["Life Artist.webp", "Adventurer.webp"];
-        nextSet = 'Lifeartist';
+        nextSet = 'LifeArtist';
       } else {
-        message = 'Your total score is: $_totalScore\n\nYou belong to the following team:';
-        teamCharacters = ["Resident.webp", "Anonymous.webp"];
-        nextSet = 'Resident';
+        message = 'Your total score is: $_totalScore\n\n Bist du ein Reacher oder ein Explorer? Das ist ein riesiger Unteschied. Noch 5 Minuten und du findest deine Stärken und blinden Flecken heraus!';
+        teamCharacters = ["Reacher.webp", "Explorer.webp"];
+        nextSet = 'Reacher';
       }
     } else {
-      if (_questions.first.set == 'BewussteInkompetenz') {
-        message = 'Your total score is: $_totalScore\n\nYou belong to the following team:';
+      if (_questions.first.set == 'BewussteKompetenz') {
+        message = 'Your total score is: $_totalScore\n\n Bist du ein Individual oder ein Traveller? Das ist ein riesiger Unteschied. Noch 5 Minuten und du findest deine Stärken und blinden Flecken heraus!';
         teamCharacters = ["Individual.webp", "Traveller.webp"];
         nextSet = 'Individual';
       } else {
-        message = 'Your total score is: $_totalScore\n\nYou belong to the following team:';
-        teamCharacters = ["Reacher.webp", "Explorer.webp"];
-        nextSet = 'Reacher';
+        message = 'Your total score is: $_totalScore\n\n Bist du ein Resident oder ein Anonymous? Das ist ein riesiger Unteschied. Noch 5 Minuten und du findest deine Stärken und blinden Flecken heraus!';
+        teamCharacters = ["Resident.webp", "Anonymous.webp"];
+        nextSet = 'Resident';
       }
     }
 
@@ -204,23 +208,52 @@ class QuestionnaireModel with ChangeNotifier {
     String finalCharacter;
     String finalCharacterDescription;
 
-    if (_totalScore > 50) {
-      if (_questions.first.set == 'Lifeartist') {
-        finalCharacter = "Life Artist.webp";
-        finalCharacterDescription = "Description of Life Artist...";
+    int possibleScore = _questions.length * 3; // Calculate possible score for the final set
+
+    if (_questions.first.set == 'Traveller') {
+      if (_totalScore > (possibleScore * 0.5)) {
+        finalCharacter = "Traveller.webp";
+        finalCharacterDescription = """Als ständiger Abenteurer strebt der Traveller nach neuen Erfahrungen und persönlichem Wachstum, stets begleitet von Neugier und Offenheit.
+Er inspiriert durch seine Entschlossenheit, das Leben in vollen Zügen zu genießen und sich kontinuierlich weiterzuentwickeln.""";
       } else {
-        finalCharacter = "Resident.webp";
-        finalCharacterDescription = "Description of Resident...";
+        finalCharacter = "Individual.webp";
+        finalCharacterDescription = """Der Individual strebt nach Klarheit und Verwirklichung seiner Ziele, beeindruckt durch Selbstbewusstsein und klare Entscheidungen.
+Er inspiriert andere durch seine Entschlossenheit und positive Ausstrahlung.""";
       }
-    } else {
-      if (_questions.first.set == 'Lifeartist') {
-        finalCharacter = "Adventurer.webp";
-        finalCharacterDescription = "Description of Adventurer...";
-      } else {
+      }
+    else if (_questions.first.set == 'Reacher') {
+      if (_totalScore > (possibleScore * 0.5)) {
         finalCharacter = "Reacher.webp";
-        finalCharacterDescription = "Description of Reacher...";
+        finalCharacterDescription = """Als Initiator der Veränderung strebt der Reacher nach Wissen und persönlicher Entwicklung, trotz der Herausforderungen und Unsicherheiten.
+Seine Motivation und innere Stärke führen ihn auf den Weg des persönlichen Wachstums.""";
+      } else {
+        finalCharacter = "Explorer.webp";
+        finalCharacterDescription = """Immer offen für neue Wege der Entwicklung, erforscht der Explorer das Unbekannte und gestaltet sein Leben aktiv.
+Seine Offenheit und Entschlossenheit führen ihn zu neuen Ideen und persönlichem Wachstum.""";
       }
     }
+    else if  (_questions.first.set == 'Resident') {
+      if (_totalScore < (possibleScore * 0.5)) {
+        finalCharacter = "Resident.webp";
+        finalCharacterDescription = """Im ständigen Kampf mit inneren Dämonen sucht der Resident nach persönlichem Wachstum und Klarheit, unterstützt andere trotz eigener Herausforderungen.
+Seine Erfahrungen und Wissen bieten Orientierung, während er nach Selbstvertrauen und Stabilität strebt.""";
+      } else {
+        finalCharacter = "Anonymous.webp";
+        finalCharacterDescription = """Der Anonymous operiert im Verborgenen, mit einem tiefen Weitblick und unaufhaltsamer Ruhe, beeinflusst er subtil aus dem Schatten.
+Sein unsichtbares Netzwerk und seine Anpassungsfähigkeit machen ihn zum verlässlichen Berater derjenigen im Rampenlicht.""";
+      }
+    }
+    else {
+      if (_totalScore > (possibleScore * 0.5)) {
+        finalCharacter = "Life Artist.webp";
+        finalCharacterDescription = """Der Life Artist lebt seine Vision des Lebens mit Dankbarkeit und Energie, verwandelt Schwierigkeiten in bedeutungsvolle Erlebnisse.
+Seine Gelassenheit und Charisma ziehen andere an, während er durch ein erfülltes Leben inspiriert.""";
+      } else {
+        finalCharacter = "Adventurer.webp";
+        finalCharacterDescription = """Der Adventurer meistert das Leben mit Leichtigkeit und fasziniert durch seine Ausstrahlung und Selbstsicherheit, ein Magnet für Erfolg und Menschen.
+Kreativ und strukturiert erreicht er seine Ziele in einem Leben voller spannender Herausforderungen.""";
+      }
+      }
 
     TextEditingController emailController = TextEditingController();
 
@@ -249,7 +282,7 @@ class QuestionnaireModel with ChangeNotifier {
             TextButton(
               onPressed: () {
                 // Send email logic here (this is a placeholder)
-                String email = emailController.text;
+                String email = 'My final character is $finalCharacter.\n\nDescription: $finalCharacterDescription';
                 print('Send results to: $email');
                 Navigator.of(context).pop();
                 reset(); // Reset the quiz
@@ -268,6 +301,7 @@ class QuestionnaireModel with ChangeNotifier {
       },
     );
   }
+
 
   void setPersonalityType(String type) {
     _personalityType = type;
@@ -358,12 +392,18 @@ class QuestionnaireScreen extends StatelessWidget {
                     ),
                   if (end >= model.questions.length && model.isFirstTestCompleted && !model.isSecondTestCompleted)
                     ElevatedButton(
-                      onPressed: () => model.completeSecondTest(context),
+                      onPressed: () {
+                        model.completeSecondTest(context);
+                        _showRewardAnimation(context, 'stars.json'); // Show reward animation
+                      },
                       child: Text('Complete Second Test'),
                     ),
                   if (end >= model.questions.length && model.isSecondTestCompleted)
                     ElevatedButton(
-                      onPressed: () => model.completeFinalTest(context),
+                      onPressed: () {
+                        model.completeFinalTest(context);
+                        _showRewardAnimation(context, 'stars.json'); // Show reward animation
+                      },
                       child: Text('Finish Final Test'),
                     ),
                 ],
@@ -374,4 +414,36 @@ class QuestionnaireScreen extends StatelessWidget {
       ),
     );
   }
+
+  void _showRewardAnimation(BuildContext context, String animationAsset) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Prevent dismissing by tapping outside
+      builder: (BuildContext context) {
+        Future.delayed(Duration(seconds: 1), () {
+          Navigator.of(context).pop(); // Close the transparent overlay after 2 seconds
+        });
+
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            // Transparent overlay
+            Container(
+              color: Colors.transparent, // Transparent color
+            ),
+            // Reward animation
+            Lottie.asset(
+              'assets/$animationAsset',
+              width: 150,
+              height: 150,
+              fit: BoxFit.contain,
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
+
 }
