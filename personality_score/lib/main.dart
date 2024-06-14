@@ -118,7 +118,7 @@ class QuestionnaireModel with ChangeNotifier {
               SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: teamCharacters.map((character) => Image.asset('assets/$character', width: 50, height: 50)).toList(),
+                children: teamCharacters.map((character) => Image.asset('assets/$character', width: 100, height: 100)).toList(),
               ),
             ],
           ),
@@ -182,7 +182,7 @@ class QuestionnaireModel with ChangeNotifier {
               SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: teamCharacters.map((character) => Image.asset('assets/$character', width: 50, height: 50)).toList(),
+                children: teamCharacters.map((character) => Image.asset('assets/$character', width: 150, height: 150)).toList(),
               ),
             ],
           ),
@@ -267,7 +267,7 @@ Kreativ und strukturiert erreicht er seine Ziele in einem Leben voller spannende
             children: [
               Text('Your final character is:'),
               SizedBox(height: 10),
-              Image.asset('assets/$finalCharacter', width: 100, height: 100),
+              Image.asset('assets/$finalCharacter', width: 200, height: 200),
               SizedBox(height: 10),
               Text(finalCharacterDescription),
               TextField(
