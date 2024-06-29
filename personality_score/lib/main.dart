@@ -1,25 +1,59 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
-import 'package:lottie/lottie.dart'; // Import Lottie package
-import 'services/question_service.dart';
+import 'package:personality_score/services/question_service.dart';
 import 'models/question.dart';
+import 'auth/auth_service.dart';
+import 'screens/home_screen.dart';
+import 'package:lottie/lottie.dart'; // Import Lottie package
 import 'package:share_plus/share_plus.dart';
+import 'screens/home_screen.dart';
+import 'screens/sign_in_screen.dart';
+import 'screens/sign_up_screen.dart';
+import 'firebase_options.dart'; // Ensure you have this file generated
+import 'package:personality_score/services/upload_questions.dart';
+import 'package:personality_score/screens/profile_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Questionnaire App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: ChangeNotifierProvider(
-        create: (_) => QuestionnaireModel(),
-        child: QuestionnaireScreen(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthService()),
+        ChangeNotifierProvider(create: (_) => QuestionnaireModel()),
+      ],
+      child: MaterialApp(
+        title: 'Questionnaire App',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        initialRoute: '/',
+        routes: {
+          '/': (context) => Consumer<AuthService>(
+            builder: (context, authService, child) {
+              if (authService.user == null) {
+                return SignInScreen();
+              } else {
+                return HomeScreen();
+              }
+            },
+          ),
+          '/signin': (context) => SignInScreen(),
+          '/signup': (context) => SignUpScreen(),
+          '/home': (context) => HomeScreen(),
+          '/questionnaire': (context) => QuestionnaireScreen(),
+          '/profile': (context) => ProfileScreen(),
+        },
       ),
     );
   }
@@ -27,6 +61,7 @@ class MyApp extends StatelessWidget {
 
 class QuestionnaireModel with ChangeNotifier {
   final QuestionService _questionService = QuestionService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   List<Question> _questions = [];
   int _currentQuestionIndex = 0;
   int _totalScore = 0;
@@ -53,23 +88,57 @@ class QuestionnaireModel with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> saveProgress() async {
+    User? user = _auth.currentUser;
+    if (user != null) {
+      await _questionService.saveUserData(user.uid, {
+        'answers': _answers,
+        'totalScore': _totalScore,
+        'currentPage': _currentPage,
+        'isFirstTestCompleted': _isFirstTestCompleted,
+        'isSecondTestCompleted': _isSecondTestCompleted,
+      });
+    }
+  }
+
+  Future<void> loadProgress() async {
+    User? user = _auth.currentUser;
+    if (user != null) {
+      final data = await _questionService.loadUserData(user.uid);
+      if (data != null) {
+        _answers = List<int?>.from(data['answers']);
+        _totalScore = data['totalScore'];
+        _currentPage = data['currentPage'];
+        _isFirstTestCompleted = data['isFirstTestCompleted'];
+        _isSecondTestCompleted = data['isSecondTestCompleted'];
+        notifyListeners();
+      }
+    }
+  }
+
   void answerQuestion(int index, int value) {
     _answers[index] = value;
     _totalScore = _answers.where((a) => a != null).fold(0, (sum, a) => sum + a!);
+    saveProgress();
     notifyListeners();
   }
 
   void nextPage(BuildContext context) {
-    _currentPage++;
-    notifyListeners();
+    if ((_currentPage + 1) * 7 < _questions.length) {
+      _currentPage++;
+      saveProgress();
+      notifyListeners();
+    }
   }
 
   void prevPage() {
     if (_currentPage > 0) {
       _currentPage--;
+      saveProgress();
       notifyListeners();
     }
   }
+
 
   void reset() {
     _totalScore = 0;
@@ -80,6 +149,7 @@ class QuestionnaireModel with ChangeNotifier {
     _personalityType = null;
     _isFirstTestCompleted = false;
     _isSecondTestCompleted = false;
+    saveProgress();
     notifyListeners();
   }
 
@@ -87,6 +157,15 @@ class QuestionnaireModel with ChangeNotifier {
     if (_questions.isEmpty) return 0.0;
     return (_currentPage + 1) / (_questions.length / 7).ceil();
   }
+
+
+  void setPersonalityType(String type) {
+    _personalityType = type;
+    saveProgress();
+    notifyListeners();
+  }
+
+
 
   void completeFirstTest(BuildContext context) {
     _isFirstTestCompleted = true;
@@ -303,11 +382,8 @@ Kreativ und strukturiert erreicht er seine Ziele in einem Leben voller spannende
   }
 
 
-  void setPersonalityType(String type) {
-    _personalityType = type;
-    notifyListeners();
-  }
 }
+
 
 class QuestionnaireScreen extends StatelessWidget {
   @override
@@ -319,7 +395,8 @@ class QuestionnaireScreen extends StatelessWidget {
       body: Consumer<QuestionnaireModel>(
         builder: (context, model, child) {
           if (model.questions.isEmpty) {
-            model.loadQuestions('Kompetenz'); // Load initial questions based on set name
+            model.loadQuestions('Kompetenz');
+            model.loadProgress(); // Load user progress
             return Center(child: CircularProgressIndicator());
           }
 
@@ -443,7 +520,5 @@ class QuestionnaireScreen extends StatelessWidget {
       },
     );
   }
-
-
-
 }
+
