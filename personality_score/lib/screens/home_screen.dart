@@ -68,7 +68,7 @@ class HomeScreen extends StatelessWidget {
                 _buildStatistic('19M+', 'Tests taken in Germany'),
                 _buildStatistic('1204M+', 'Total tests taken'),
                 _buildStatistic('91.2%', 'Results rated as accurate or very accurate'),
-              ],
+              ].map((widget) => Expanded(child: widget)).toList(), // Wrap each child in Expanded
             ),
           ),
         ],
