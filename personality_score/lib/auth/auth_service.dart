@@ -35,9 +35,20 @@ class AuthService with ChangeNotifier {
     await _auth.signOut();
   }
 
+
   void _onAuthStateChanged(User? user) {
     _user = user;
     _errorMessage = null;  // Clear error message on successful sign-in
     notifyListeners();
+  }
+
+
+  Future<void> updateDisplayName(String displayName) async {
+    if (_user != null) {
+      await _user!.updateDisplayName(displayName);
+      await _user!.reload();
+      _user = _auth.currentUser;
+      notifyListeners();
+    }
   }
 }

@@ -3,12 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:personality_score/main.dart';
 
 import '../models/question.dart';
+import 'package:lottie/lottie.dart'; // Import Lottie package
 
 class QuestionnaireScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final questionnaireModel = Provider.of<QuestionnaireModel>(context);
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Questionnaire'),
@@ -16,7 +15,8 @@ class QuestionnaireScreen extends StatelessWidget {
       body: Consumer<QuestionnaireModel>(
         builder: (context, model, child) {
           if (model.questions.isEmpty) {
-            model.loadQuestions('default'); // Laden der initialen Fragen
+            model.loadQuestions('Kompetenz');
+            model.loadProgress(); // Load user progress
             return Center(child: CircularProgressIndicator());
           }
 
@@ -60,7 +60,7 @@ class QuestionnaireScreen extends StatelessWidget {
                                   model.answerQuestion(questionIndex, val);
                                 }
                               },
-                              title: Center(child: Text(i.toString())), // Anzeige von 0-3
+                              title: Center(child: Text(i.toString())), // Display 0-3
                             ),
                           );
                         }),
@@ -70,7 +70,7 @@ class QuestionnaireScreen extends StatelessWidget {
                 ),
               ),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   if (model.currentPage > 0)
                     ElevatedButton(
@@ -91,6 +91,7 @@ class QuestionnaireScreen extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () {
                         model.completeSecondTest(context);
+                        _showRewardAnimation(context, 'stars.json'); // Show reward animation
                       },
                       child: Text('Complete Second Test'),
                     ),
@@ -98,15 +99,46 @@ class QuestionnaireScreen extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () {
                         model.completeFinalTest(context);
+                        _showRewardAnimation(context, 'stars.json'); // Show reward animation
                       },
                       child: Text('Finish Final Test'),
                     ),
                 ],
               ),
+              SizedBox(height: 20),
             ],
           );
         },
       ),
+    );
+  }
+
+  void _showRewardAnimation(BuildContext context, String animationAsset) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Prevent dismissing by tapping outside
+      builder: (BuildContext context) {
+        Future.delayed(Duration(seconds: 2), () {
+          Navigator.of(context).pop(); // Close the transparent overlay after 2 seconds
+        });
+
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            // Transparent overlay
+            Container(
+              color: Colors.transparent, // Transparent color
+            ),
+            // Reward animation
+            Lottie.asset(
+              'assets/$animationAsset',
+              width: 150,
+              height: 150,
+              fit: BoxFit.contain,
+            ),
+          ],
+        );
+      },
     );
   }
 }

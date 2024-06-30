@@ -18,6 +18,12 @@ class HomeScreen extends StatelessWidget {
               await authService.signOut();
               Navigator.of(context).pushReplacementNamed('/signin');
             },
+          ),
+          IconButton(
+            icon: Icon(Icons.person),
+            onPressed: () {
+              Navigator.of(context).pushNamed('/profile');
+            },
           )
         ],
       ),

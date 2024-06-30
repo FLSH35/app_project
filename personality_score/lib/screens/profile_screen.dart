@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:personality_score/auth/auth_service.dart';
 
 import '../main.dart';
+
 class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -19,9 +21,6 @@ class ProfileScreen extends StatelessWidget {
         ),
       );
     }
-
-    final personalityType = questionnaireModel.personalityType;
-    final characterDescription = _getPersonalityDescription(personalityType, questionnaireModel.totalScore);
 
     return Scaffold(
       appBar: AppBar(
@@ -42,51 +41,57 @@ class ProfileScreen extends StatelessWidget {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 20),
-            if (personalityType != null) ...[
-              Text(
-                'Your Personality Type',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Expanded(
+              child: StreamBuilder(
+                stream: FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(user.uid)
+                    .collection('results')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  var results = snapshot.data!.docs;
+                  return ListView.builder(
+                    itemCount: results.length,
+                    itemBuilder: (context, index) {
+                      var result = results[index];
+                      if (result.id == 'finalCharacter') {
+                        return Card(
+                          child: ListTile(
+                            title: Text('Final Character'),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(height: 10),
+                                Image.asset('assets/${result['finalCharacter']}',
+                                    width: 100, height: 100),
+                                SizedBox(height: 10),
+                                Text(result['finalCharacterDescription']),
+                              ],
+                            ),
+                          ),
+                        );
+                      } else {
+                        return Card(
+                          child: ListTile(
+                            title: Text('Set: ${result['set']}'),
+                            subtitle: Text('Score: ${result['totalScore']}'),
+                            trailing: result['isCompleted'] != null && result['isCompleted']
+                                ? Icon(Icons.check_circle, color: Colors.green)
+                                : Icon(Icons.pending, color: Colors.grey),
+                          ),
+                        );
+                      }
+                    },
+                  );
+                },
               ),
-              SizedBox(height: 10),
-              Image.asset('assets/$personalityType.webp'), // Use WebP format
-              SizedBox(height: 10),
-              Text(
-                characterDescription,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16),
-              ),
-            ],
+            ),
           ],
         ),
       ),
     );
-  }
-
-  String _getPersonalityDescription(String? type, int score) {
-    if (type == null) return 'No description available.';
-
-    int possibleScore = 120; // Adjust this to match your scoring logic
-    bool isHighScore = score > (possibleScore * 0.5);
-
-    switch (type) {
-      case 'Individual':
-        return isHighScore
-            ? """Der Individual strebt nach Klarheit und Verwirklichung seiner Ziele, beeindruckt durch Selbstbewusstsein und klare Entscheidungen. Er inspiriert andere durch seine Entschlossenheit und positive Ausstrahlung."""
-            : """Als ständiger Abenteurer strebt der Traveller nach neuen Erfahrungen und persönlichem Wachstum, stets begleitet von Neugier und Offenheit. Er inspiriert durch seine Entschlossenheit, das Leben in vollen Zügen zu genießen und sich kontinuierlich weiterzuentwickeln.""";
-      case 'Reacher':
-        return isHighScore
-            ? """Als Initiator der Veränderung strebt der Reacher nach Wissen und persönlicher Entwicklung, trotz der Herausforderungen und Unsicherheiten. Seine Motivation und innere Stärke führen ihn auf den Weg des persönlichen Wachstums."""
-            : """Immer offen für neue Wege der Entwicklung, erforscht der Explorer das Unbekannte und gestaltet sein Leben aktiv. Seine Offenheit und Entschlossenheit führen ihn zu neuen Ideen und persönlichem Wachstum.""";
-      case 'Resident':
-        return isHighScore
-            ? """Der Anonymous operiert im Verborgenen, mit einem tiefen Weitblick und unaufhaltsamer Ruhe, beeinflusst er subtil aus dem Schatten. Sein unsichtbares Netzwerk und seine Anpassungsfähigkeit machen ihn zum verlässlichen Berater derjenigen im Rampenlicht."""
-            : """Im ständigen Kampf mit inneren Dämonen sucht der Resident nach persönlichem Wachstum und Klarheit, unterstützt andere trotz eigener Herausforderungen. Seine Erfahrungen und Wissen bieten Orientierung, während er nach Selbstvertrauen und Stabilität strebt.""";
-      case 'Life Artist':
-        return isHighScore
-            ? """Der Life Artist lebt seine Vision des Lebens mit Dankbarkeit und Energie, verwandelt Schwierigkeiten in bedeutungsvolle Erlebnisse. Seine Gelassenheit und Charisma ziehen andere an, während er durch ein erfülltes Leben inspiriert."""
-            : """Der Adventurer meistert das Leben mit Leichtigkeit und fasziniert durch seine Ausstrahlung und Selbstsicherheit, ein Magnet für Erfolg und Menschen. Kreativ und strukturiert erreicht er seine Ziele in einem Leben voller spannender Herausforderungen.""";
-      default:
-        return 'No description available for this personality type.';
-    }
   }
 }

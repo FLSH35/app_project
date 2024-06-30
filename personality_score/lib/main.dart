@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:personality_score/screens/questionaire_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:personality_score/services/question_service.dart';
 import 'models/question.dart';
@@ -13,7 +14,6 @@ import 'screens/home_screen.dart';
 import 'screens/sign_in_screen.dart';
 import 'screens/sign_up_screen.dart';
 import 'firebase_options.dart'; // Ensure you have this file generated
-import 'package:personality_score/services/upload_questions.dart';
 import 'package:personality_score/screens/profile_screen.dart';
 
 void main() async {
@@ -71,6 +71,10 @@ class QuestionnaireModel with ChangeNotifier {
   int _progress = 0;
   bool _isFirstTestCompleted = false;
   bool _isSecondTestCompleted = false;
+  String _currentSet = 'Kompetenz';
+
+  String? _finalCharacter;
+  String? _finalCharacterDescription;
 
   List<Question> get questions => _questions;
   int get currentQuestionIndex => _currentQuestionIndex;
@@ -81,8 +85,11 @@ class QuestionnaireModel with ChangeNotifier {
   int get progress => _progress;
   bool get isFirstTestCompleted => _isFirstTestCompleted;
   bool get isSecondTestCompleted => _isSecondTestCompleted;
+  String? get finalCharacter => _finalCharacter;
+  String? get finalCharacterDescription => _finalCharacterDescription;
 
   Future<void> loadQuestions(String set) async {
+    _currentSet = set;
     _questions = await _questionService.loadQuestions(set);
     _answers = List<int?>.filled(_questions.length, null);
     notifyListeners();
@@ -91,26 +98,35 @@ class QuestionnaireModel with ChangeNotifier {
   Future<void> saveProgress() async {
     User? user = _auth.currentUser;
     if (user != null) {
-      await _questionService.saveUserData(user.uid, {
-        'answers': _answers,
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('results')
+          .doc(_currentSet)
+          .set({
+        'set': _currentSet,
         'totalScore': _totalScore,
-        'currentPage': _currentPage,
-        'isFirstTestCompleted': _isFirstTestCompleted,
-        'isSecondTestCompleted': _isSecondTestCompleted,
-      });
+        'isCompleted': _isFirstTestCompleted || _isSecondTestCompleted,
+        'completionDate': FieldValue.serverTimestamp()
+      }, SetOptions(merge: true));
     }
   }
 
   Future<void> loadProgress() async {
     User? user = _auth.currentUser;
     if (user != null) {
-      final data = await _questionService.loadUserData(user.uid);
-      if (data != null) {
-        _answers = List<int?>.from(data['answers']);
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('results')
+          .doc(_currentSet)
+          .get();
+      if (doc.exists) {
+        final data = doc.data()!;
         _totalScore = data['totalScore'];
-        _currentPage = data['currentPage'];
-        _isFirstTestCompleted = data['isFirstTestCompleted'];
-        _isSecondTestCompleted = data['isSecondTestCompleted'];
+        _isFirstTestCompleted = data['isCompleted'];
+        _finalCharacter = data['finalCharacter'];
+        _finalCharacterDescription = data['finalCharacterDescription'];
         notifyListeners();
       }
     }
@@ -139,7 +155,6 @@ class QuestionnaireModel with ChangeNotifier {
     }
   }
 
-
   void reset() {
     _totalScore = 0;
     _currentQuestionIndex = 0;
@@ -158,14 +173,11 @@ class QuestionnaireModel with ChangeNotifier {
     return (_currentPage + 1) / (_questions.length / 7).ceil();
   }
 
-
   void setPersonalityType(String type) {
     _personalityType = type;
     saveProgress();
     notifyListeners();
   }
-
-
 
   void completeFirstTest(BuildContext context) {
     _isFirstTestCompleted = true;
@@ -175,7 +187,7 @@ class QuestionnaireModel with ChangeNotifier {
 
     int possibleScore = _questions.length * 3; // Calculate possible score for the current set
 
-    if (_totalScore > (possibleScore * 0.5)) { // Check if total score is more than 50% of possible score
+    if (_totalScore < (possibleScore * 0.5)) { // Check if total score is more than 50% of possible score
       message = 'Im Bereich der Kompetenz hast du folgende Punktzahl: $_totalScore\n\n Jetzt kennst du dein Team. Wenn du dein wahres Ich kennenlernen willst, fülle noch die nächsten Fragen aus!';
       teamCharacters = ["Life Artist.webp", "Individual.webp", "Adventurer.webp", "Traveller.webp"];
       nextSet = 'BewussteKompetenz';
@@ -283,7 +295,7 @@ class QuestionnaireModel with ChangeNotifier {
     );
   }
 
-  void completeFinalTest(BuildContext context) {
+  void completeFinalTest(BuildContext context) async {
     String finalCharacter;
     String finalCharacterDescription;
 
@@ -299,8 +311,7 @@ Er inspiriert andere durch seine Entschlossenheit und positive Ausstrahlung.""";
         finalCharacterDescription = """Als ständiger Abenteurer strebt der Traveller nach neuen Erfahrungen und persönlichem Wachstum, stets begleitet von Neugier und Offenheit.
 Er inspiriert durch seine Entschlossenheit, das Leben in vollen Zügen zu genießen und sich kontinuierlich weiterzuentwickeln.""";
       }
-    }
-    else if (_questions.first.set == 'Reacher') {
+    } else if (_questions.first.set == 'Reacher') {
       if (_totalScore > (possibleScore * 0.5)) {
         finalCharacter = "Reacher.webp";
         finalCharacterDescription = """Als Initiator der Veränderung strebt der Reacher nach Wissen und persönlicher Entwicklung, trotz der Herausforderungen und Unsicherheiten.
@@ -310,9 +321,8 @@ Seine Motivation und innere Stärke führen ihn auf den Weg des persönlichen Wa
         finalCharacterDescription = """Immer offen für neue Wege der Entwicklung, erforscht der Explorer das Unbekannte und gestaltet sein Leben aktiv.
 Seine Offenheit und Entschlossenheit führen ihn zu neuen Ideen und persönlichem Wachstum.""";
       }
-    }
-    else if  (_questions.first.set == 'Resident') {
-      if (_totalScore < (possibleScore * 0.5)) {
+    } else if (_questions.first.set == 'Resident') {
+      if (_totalScore > (possibleScore * 0.5)) {
         finalCharacter = "Resident.webp";
         finalCharacterDescription = """Im ständigen Kampf mit inneren Dämonen sucht der Resident nach persönlichem Wachstum und Klarheit, unterstützt andere trotz eigener Herausforderungen.
 Seine Erfahrungen und Wissen bieten Orientierung, während er nach Selbstvertrauen und Stabilität strebt.""";
@@ -321,8 +331,7 @@ Seine Erfahrungen und Wissen bieten Orientierung, während er nach Selbstvertrau
         finalCharacterDescription = """Der Anonymous operiert im Verborgenen, mit einem tiefen Weitblick und unaufhaltsamer Ruhe, beeinflusst er subtil aus dem Schatten.
 Sein unsichtbares Netzwerk und seine Anpassungsfähigkeit machen ihn zum verlässlichen Berater derjenigen im Rampenlicht.""";
       }
-    }
-    else {
+    } else {
       if (_totalScore > (possibleScore * 0.5)) {
         finalCharacter = "Life Artist.webp";
         finalCharacterDescription = """Der Life Artist lebt seine Vision des Lebens mit Dankbarkeit und Energie, verwandelt Schwierigkeiten in bedeutungsvolle Erlebnisse.
@@ -332,9 +341,41 @@ Seine Gelassenheit und Charisma ziehen andere an, während er durch ein erfüllt
         finalCharacterDescription = """Der Adventurer meistert das Leben mit Leichtigkeit und fasziniert durch seine Ausstrahlung und Selbstsicherheit, ein Magnet für Erfolg und Menschen.
 Kreativ und strukturiert erreicht er seine Ziele in einem Leben voller spannender Herausforderungen.""";
       }
-      }
+    }
 
-    TextEditingController emailController = TextEditingController();
+    // Set final character and description in model
+    _finalCharacter = finalCharacter;
+    _finalCharacterDescription = finalCharacterDescription;
+    notifyListeners();
+
+    // Save final character and description to Firestore
+    User? user = _auth.currentUser;
+    if (user != null) {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('results')
+          .doc('finalCharacter')
+          .set({
+        'finalCharacter': _finalCharacter,
+        'finalCharacterDescription': _finalCharacterDescription,
+        'completionDate': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    }
+
+    if (user != null) {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('results')
+          .doc(_currentSet)
+          .set({
+        'set': _currentSet,
+        'totalScore': _totalScore,
+        'isCompleted': true,
+        'completionDate': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    }
 
     showDialog(
       context: context,
@@ -349,23 +390,16 @@ Kreativ und strukturiert erreicht er seine Ziele in einem Leben voller spannende
               Image.asset('assets/$finalCharacter', width: 200, height: 200),
               SizedBox(height: 10),
               Text(finalCharacterDescription),
-              TextField(
-                controller: emailController,
-                decoration: InputDecoration(
-                  labelText: 'Enter your email to receive results',
-                ),
-              ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () {
-                // Send email logic here (this is a placeholder)
-                String email = 'My final character is $finalCharacter.\n\nDescription: $finalCharacterDescription';
-                print('Send results to: $email');
+                reset(); // Reset the
                 Navigator.of(context).pop();
-                reset(); // Reset the quiz
+                notifyListeners();
               },
+
               child: Text('Finish'),
             ),
             TextButton(
@@ -380,145 +414,4 @@ Kreativ und strukturiert erreicht er seine Ziele in einem Leben voller spannende
       },
     );
   }
-
-
 }
-
-
-class QuestionnaireScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Questionnaire'),
-      ),
-      body: Consumer<QuestionnaireModel>(
-        builder: (context, model, child) {
-          if (model.questions.isEmpty) {
-            model.loadQuestions('Kompetenz');
-            model.loadProgress(); // Load user progress
-            return Center(child: CircularProgressIndicator());
-          }
-
-          int start = model.currentPage * 7;
-          int end = start + 7;
-          List<Question> currentQuestions = model.questions.sublist(start, end > model.questions.length ? model.questions.length : end);
-
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Center(
-                  child: Text(
-                    'Personality Score',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-              LinearProgressIndicator(
-                value: model.getProgress(),
-                backgroundColor: Colors.grey[200],
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: currentQuestions.length,
-                  itemBuilder: (context, index) {
-                    Question question = currentQuestions[index];
-                    int questionIndex = start + index;
-                    return ListTile(
-                      title: Center(child: Text(question.text)),
-                      subtitle: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: List.generate(4, (i) {
-                          return Expanded(
-                            child: RadioListTile<int>(
-                              value: i,
-                              groupValue: model.answers[questionIndex],
-                              onChanged: (val) {
-                                if (val != null) {
-                                  model.answerQuestion(questionIndex, val);
-                                }
-                              },
-                              title: Center(child: Text(i.toString())), // Display 0-3
-                            ),
-                          );
-                        }),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  if (model.currentPage > 0)
-                    ElevatedButton(
-                      onPressed: () => model.prevPage(),
-                      child: Text('Previous'),
-                    ),
-                  if (end < model.questions.length)
-                    ElevatedButton(
-                      onPressed: () => model.nextPage(context),
-                      child: Text('Next'),
-                    ),
-                  if (end >= model.questions.length && !model.isFirstTestCompleted)
-                    ElevatedButton(
-                      onPressed: () => model.completeFirstTest(context),
-                      child: Text('Complete First Test'),
-                    ),
-                  if (end >= model.questions.length && model.isFirstTestCompleted && !model.isSecondTestCompleted)
-                    ElevatedButton(
-                      onPressed: () {
-                        model.completeSecondTest(context);
-                        _showRewardAnimation(context, 'stars.json'); // Show reward animation
-                      },
-                      child: Text('Complete Second Test'),
-                    ),
-                  if (end >= model.questions.length && model.isSecondTestCompleted)
-                    ElevatedButton(
-                      onPressed: () {
-                        model.completeFinalTest(context);
-                        _showRewardAnimation(context, 'stars.json'); // Show reward animation
-                      },
-                      child: Text('Finish Final Test'),
-                    ),
-                ],
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  void _showRewardAnimation(BuildContext context, String animationAsset) {
-    showDialog(
-      context: context,
-      barrierDismissible: false, // Prevent dismissing by tapping outside
-      builder: (BuildContext context) {
-        Future.delayed(Duration(seconds: 1), () {
-          Navigator.of(context).pop(); // Close the transparent overlay after 2 seconds
-        });
-
-        return Stack(
-          alignment: Alignment.center,
-          children: [
-            // Transparent overlay
-            Container(
-              color: Colors.transparent, // Transparent color
-            ),
-            // Reward animation
-            Lottie.asset(
-              'assets/$animationAsset',
-              width: 150,
-              height: 150,
-              fit: BoxFit.contain,
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
