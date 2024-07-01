@@ -58,9 +58,8 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
 class QuestionnaireModel with ChangeNotifier {
-  final QuestionService _questionService = QuestionService();
+  QuestionService _questionService = QuestionService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   List<Question> _questions = [];
   int _currentQuestionIndex = 0;
@@ -75,6 +74,10 @@ class QuestionnaireModel with ChangeNotifier {
 
   String? _finalCharacter;
   String? _finalCharacterDescription;
+
+  set questionService(QuestionService service) {
+    _questionService = service;
+  }
 
   List<Question> get questions => _questions;
   int get currentQuestionIndex => _currentQuestionIndex;
@@ -187,13 +190,13 @@ class QuestionnaireModel with ChangeNotifier {
 
     int possibleScore = _questions.length * 3; // Calculate possible score for the current set
 
-    if (_totalScore < (possibleScore * 0.5)) { // Check if total score is more than 50% of possible score
+    if (_totalScore > (possibleScore * 0.5)) { // Check if total score is more than 50% of possible score
       message = 'Im Bereich der Kompetenz hast du folgende Punktzahl: $_totalScore\n\n Jetzt kennst du dein Team. Wenn du dein wahres Ich kennenlernen willst, fülle noch die nächsten Fragen aus!';
       teamCharacters = ["Life Artist.webp", "Individual.webp", "Adventurer.webp", "Traveller.webp"];
       nextSet = 'BewussteKompetenz';
     } else {
       message = 'Im Bereich der Kompetenz hast du folgende Punktzahl: $_totalScore\n\n  Jetzt kennst du dein Team. Wenn du dein wahres Ich kennenlernen willst, fülle noch die nächsten Fragen aus!';
-      teamCharacters = ["Resident.webp", "Explorer.webp", "Reacher.webp", "Anonymous.webp"];
+      teamCharacters = ["resident.webp", "Explorer.webp", "Reacher.webp", "Anonymous.webp"];
       nextSet = 'BewussteInkompetenz';
     }
 
@@ -207,9 +210,12 @@ class QuestionnaireModel with ChangeNotifier {
             children: [
               Text(message),
               SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: teamCharacters.map((character) => Image.asset('assets/$character', width: 100, height: 100)).toList(),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: teamCharacters.map((character) => Image.asset('assets/$character', width: 100, height: 100)).toList(),
+                ),
               ),
             ],
           ),
@@ -256,11 +262,10 @@ class QuestionnaireModel with ChangeNotifier {
         nextSet = 'Individual';
       } else {
         message = 'Your total score is: $_totalScore\n\n Bist du ein Resident oder ein Anonymous? Das ist ein riesiger Unteschied. Noch 5 Minuten und du findest deine Stärken und blinden Flecken heraus!';
-        teamCharacters = ["Resident.webp", "Anonymous.webp"];
+        teamCharacters = ["resident.webp", "Anonymous.webp"];
         nextSet = 'Resident';
       }
     }
-
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -271,9 +276,12 @@ class QuestionnaireModel with ChangeNotifier {
             children: [
               Text(message),
               SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: teamCharacters.map((character) => Image.asset('assets/$character', width: 150, height: 150)).toList(),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: teamCharacters.map((character) => Image.asset('assets/$character', width: 150, height: 150)).toList(),
+                ),
               ),
             ],
           ),
@@ -294,6 +302,7 @@ class QuestionnaireModel with ChangeNotifier {
       },
     );
   }
+
 
   void completeFinalTest(BuildContext context) async {
     String finalCharacter;
@@ -323,7 +332,7 @@ Seine Offenheit und Entschlossenheit führen ihn zu neuen Ideen und persönliche
       }
     } else if (_questions.first.set == 'Resident') {
       if (_totalScore > (possibleScore * 0.5)) {
-        finalCharacter = "Resident.webp";
+        finalCharacter = "resident.webp";
         finalCharacterDescription = """Im ständigen Kampf mit inneren Dämonen sucht der Resident nach persönlichem Wachstum und Klarheit, unterstützt andere trotz eigener Herausforderungen.
 Seine Erfahrungen und Wissen bieten Orientierung, während er nach Selbstvertrauen und Stabilität strebt.""";
       } else {
