@@ -205,19 +205,20 @@ class QuestionnaireModel with ChangeNotifier {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Total Score'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(message),
-              SizedBox(height: 10),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(message),
+                SizedBox(height: 10),
+                Wrap(
+                  spacing: 10.0, // Space between adjacent items
+                  runSpacing: 10.0, // Space between lines
+                  alignment: WrapAlignment.center, // Align items in the center
                   children: teamCharacters.map((character) => Image.asset('assets/$character', width: 100, height: 100)).toList(),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -235,6 +236,7 @@ class QuestionnaireModel with ChangeNotifier {
         );
       },
     );
+
   }
 
   void completeSecondTest(BuildContext context) {
@@ -302,7 +304,6 @@ class QuestionnaireModel with ChangeNotifier {
       },
     );
   }
-
 
   void completeFinalTest(BuildContext context) async {
     String finalCharacter;
@@ -386,20 +387,30 @@ Kreativ und strukturiert erreicht er seine Ziele in einem Leben voller spannende
       }, SetOptions(merge: true));
     }
 
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Final Character'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Your final character is:'),
-              SizedBox(height: 10),
-              Image.asset('assets/$finalCharacter', width: 200, height: 200),
-              SizedBox(height: 10),
-              Text(finalCharacterDescription),
-            ],
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Your final character is:'),
+                SizedBox(height: 10),
+                Wrap(
+                  spacing: 10.0, // Space between adjacent items
+                  runSpacing: 10.0, // Space between lines
+                  alignment: WrapAlignment.center, // Align items in the center
+                  children: [
+                    Image.asset('assets/$finalCharacter', width: 200, height: 200),
+                  ],
+                ),
+                SizedBox(height: 10),
+                Text(finalCharacterDescription),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -408,7 +419,6 @@ Kreativ und strukturiert erreicht er seine Ziele in einem Leben voller spannende
                 Navigator.of(context).pop();
                 notifyListeners();
               },
-
               child: Text('Finish'),
             ),
             TextButton(
@@ -422,5 +432,8 @@ Kreativ und strukturiert erreicht er seine Ziele in einem Leben voller spannende
         );
       },
     );
+
+
+
   }
 }
