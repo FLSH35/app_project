@@ -99,7 +99,6 @@ class QuestionnaireScreen extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () {
                         model.completeFinalTest(context);
-                        _showRewardAnimation(context, 'stars.json'); // Show reward animation
                       },
                       child: Text('Finish Final Test'),
                     ),
