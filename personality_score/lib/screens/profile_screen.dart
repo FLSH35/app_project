@@ -80,7 +80,7 @@ class ProfileScreen extends StatelessWidget {
                             subtitle: Text('Score: ${result['totalScore']}'),
                             trailing: result['isCompleted'] != null && result['isCompleted']
                                 ? Icon(Icons.check_circle, color: Colors.green)
-                                : Icon(Icons.pending, color: Colors.grey),
+                                : Icon(Icons.check_circle, color: Colors.green),
                           ),
                         );
                       }

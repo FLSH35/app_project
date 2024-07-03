@@ -64,10 +64,10 @@ class HomeScreen extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildStatistic('1M+', 'Tests taken today'),
-                _buildStatistic('19M+', 'Tests taken in Germany'),
-                _buildStatistic('1204M+', 'Total tests taken'),
-                _buildStatistic('91.2%', 'Results rated as accurate or very accurate'),
+                _buildStatistic('0M+', 'Tests taken today'),
+                _buildStatistic('0M+', 'Tests taken in Germany'),
+                _buildStatistic('1+', 'Total tests taken'),
+                _buildStatistic('100%', 'Results rated as accurate or very accurate'),
               ].map((widget) => Expanded(child: widget)).toList(), // Wrap each child in Expanded
             ),
           ),
