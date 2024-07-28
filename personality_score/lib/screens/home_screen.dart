@@ -66,6 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: TextStyle(fontSize: 22, color: Colors.white, fontFamily: 'Roboto'),
                         ),
                       ),
+                      SizedBox(height: 100),
                       Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: ElevatedButton(
@@ -79,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Text('Take the Test', style: TextStyle(color: Colors.white, fontFamily: 'Roboto', fontSize: 23)),
                         ),
                       ),
-                      SizedBox(height: 20),
+                      SizedBox(height: 50),
                       Container(
                         width: double.infinity,
                         height: 300,
@@ -254,6 +255,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
+                SizedBox(height: 150),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Center(
@@ -263,7 +265,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           "Curious how accurate we are about you?",
                           style: TextStyle(fontSize: 44, fontWeight: FontWeight.bold, color: Colors.white, fontFamily: 'Roboto'),
                         ),
-                        SizedBox(height: 10),
+                        SizedBox(height: 50),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Color(0xFFCB9935),
@@ -278,6 +280,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
+                SizedBox(height: 150),
               ],
             ),
           ),

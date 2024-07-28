@@ -48,7 +48,9 @@ class QuestionnaireScreen extends StatelessWidget {
               }
 
               int totalSteps = (model.questions.length / 7).ceil();
-              int currentStep = model.currentPage + 1;
+              int currentStep = model.currentPage;
+              int answeredQuestions = model.answers.where((answer) => answer != null).length;
+              int totalQuestions = model.questions.length;
 
               int start = model.currentPage * 7;
               int end = start + 7;
@@ -58,11 +60,31 @@ class QuestionnaireScreen extends StatelessWidget {
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(16.0),
-                    child: Center(
-                      child: Text(
-                        'Personality Score',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white, fontFamily: 'Roboto'),
-                      ),
+                    child: Column(
+                      children: [
+                        Center(
+                          child: Text(
+                            'Personality Score',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              fontFamily: 'Roboto',
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 8.0),
+                        Center(
+                          child: Text(
+                            '$answeredQuestions / $totalQuestions',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey,
+                              fontFamily: 'Roboto',
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   CustomProgressBar(totalSteps: totalSteps, currentStep: currentStep),
@@ -81,27 +103,25 @@ class QuestionnaireScreen extends StatelessWidget {
                                 style: TextStyle(color: Colors.white, fontFamily: 'Roboto', fontSize: 18),
                               ),
                             ),
-                            subtitle: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: List.generate(4, (i) {
-                                return Expanded(
-                                  child: RadioListTile<int>(
-                                    value: i,
-                                    groupValue: model.answers[questionIndex],
-                                    onChanged: (val) {
-                                      if (val != null) {
-                                        model.answerQuestion(questionIndex, val);
-                                      }
-                                    },
-                                    title: Center(
-                                      child: Text(
-                                        i.toString(),
-                                        style: TextStyle(color: Colors.white, fontFamily: 'Roboto'),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              }),
+                            subtitle: Column(
+                              children: [
+                                Slider(
+                                  value: (model.answers[questionIndex] ?? 0).toDouble(),
+                                  onChanged: (val) {
+                                    model.answerQuestion(questionIndex, val.toInt());
+                                  },
+                                  min: 0,
+                                  max: 10,
+                                  divisions: 10,
+                                  label: model.answers[questionIndex]?.toString() ?? '0',
+                                  activeColor: Color(0xFFCB9935),
+                                  inactiveColor: Colors.grey,
+                                ),
+                                Text(
+                                  model.answers[questionIndex]?.toString() ?? '0',
+                                  style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                                ),
+                              ],
                             ),
                           ),
                         );
@@ -232,11 +252,18 @@ class CustomProgressBar extends StatelessWidget {
               children: [
                 Container(
                   height: 4,
-                  color: index < currentStep ? Color(0xFFCB9935) : Colors.grey,
+                  color: index <= currentStep ? Color(0xFFCB9935) : Colors.grey,
                 ),
                 CircleAvatar(
                   radius: 10,
                   backgroundColor: index < currentStep ? Color(0xFFCB9935) : Colors.grey,
+                  child: index < currentStep
+                      ? Icon(
+                    Icons.check,
+                    color: Colors.white,
+                    size: 16,
+                  )
+                      : Container(),
                 ),
               ],
             ),
