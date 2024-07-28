@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:personality_score/main.dart';
+import 'package:personality_score/models/questionaire_model.dart';
 
 import '../models/question.dart';
 import 'package:lottie/lottie.dart'; // Import Lottie package
@@ -10,7 +10,7 @@ class QuestionnaireScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Questionnaire'),
+        title: Text('Personality Score'),
       ),
       body: Consumer<QuestionnaireModel>(
         builder: (context, model, child) {

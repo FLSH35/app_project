@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:580383824204:android:586078a47d93e2cb2357e9",
         "android_client_info": {
-          "package_name": "com.example.personality_score"
+          "package_name": "edu.hm.personality_score"
         }
       },
       "oauth_client": [],

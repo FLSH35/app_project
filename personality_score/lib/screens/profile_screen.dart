@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:personality_score/auth/auth_service.dart';
+import 'package:personality_score/models/questionaire_model.dart';
 
-import '../main.dart';
 
 class ProfileScreen extends StatelessWidget {
   @override
