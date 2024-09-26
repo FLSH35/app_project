@@ -22,6 +22,8 @@ dependencies:
   firebase_auth: ^5.1.1
   cloud_firestore: ^5.0.2
   mailer: ^5.0.0
+  flutter_sound: ^9.2.12  # or the latest version from pub.dev
+  shared_preferences: ^2.0.6  # or the latest version from pub.dev
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -31,6 +33,7 @@ dev_dependencies:
   mockito: ^5.0.16
 
   firebase_auth_mocks: ^0.14.0
+
 flutter:
   uses-material-design: true
 
@@ -38,3 +41,4 @@ flutter:
     - assets/
     - assets/auswertungen/
     - assets/icons/
+

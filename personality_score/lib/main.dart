@@ -1,86 +1,212 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:personality_score/screens/questionnaire_screen.dart';
-import 'package:provider/provider.dart';
-import 'auth/auth_service.dart';
-import 'screens/home_screen.dart';
-import 'screens/sign_in_screen.dart';
-import 'screens/sign_up_screen.dart';
-import 'firebase_options.dart'; // Ensure you have this file generated
-import 'package:personality_score/screens/profile_screen.dart';
-import 'package:personality_score/models/questionaire_model.dart';
-import 'package:personality_score/screens/personality_type_screen.dart'; // Import the new screen
+import 'dart:async';
+import 'package:flutter_sound/flutter_sound.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  runApp(MyApp());
+void main() {
+  runApp(BachataApp());
 }
 
-class MyApp extends StatelessWidget {
+class BachataApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthService(context)),
-        ChangeNotifierProvider(create: (_) => QuestionnaireModel()),
-      ],
-      child: MaterialApp(
-        title: 'Personality Score',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
-        initialRoute: '/home',
-        routes: {
-          '/': (context) => HomeScreen(),
-          '/signin': (context) => SignInScreen(),
-          '/signup': (context) => SignUpScreen(),
-          '/home': (context) => HomeScreen(),
-          '/questionnaire': (context) => QuestionnaireScreen(),
-          '/profile': (context) => ProfileScreen(),
-          '/personality_types': (context) => PersonalityTypesPage(),
-          '/impressum': (context) => ImpressumPage(), // Add this route
-          '/datenschutz': (context) => DatenschutzPage(), // Add this route
-        },
+    return MaterialApp(
+      title: 'Bachata Training App',
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        primarySwatch: Colors.blue,
       ),
-    );
-  }
-}
-class ImpressumPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Impressum'),
-        backgroundColor: Color(0xFFCB9935), // Same as the app's gold color
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Text(
-          'This is the Impressum page where the legal information goes...',
-          style: TextStyle(fontFamily: 'Roboto'),
-        ),
-      ),
+      home: BachataHomePage(),
     );
   }
 }
 
-class DatenschutzPage extends StatelessWidget {
+class BachataHomePage extends StatefulWidget {
+  @override
+  _BachataHomePageState createState() => _BachataHomePageState();
+}
+
+class _BachataHomePageState extends State<BachataHomePage> {
+  double _tactValue = 140; // Default BPM value (within dancing range)
+  late FlutterSoundPlayer _player;
+  Timer? _beatTimer;
+
+  // Bachata exercises
+  final List<String> exercises = [
+    'Stand Figuren', 'Headrole', 'in die Knie/Rotation führen',
+    'Offene Figuren', 'Fenster-Move', 'Verneigen-Move',
+    'Cross-Body Lead | Rausdrehen', 'Half-Turn | Ausdrehen oder Half-Step + HüfteDrehen',
+    'Cross-Body Lead | Hammerlock', 'Figur Salsamás 1',
+    'Platztausch. Offene Haltung', 'Drehen. Hand auf Bauch.',
+    'Halb-Drehung. Hände fallen lassen.',
+    'Platztausch. Geschlossene Haltung', 'Halb-Drehung',
+    'Basic.NachVorne.Half-Basic.FollowerTurn.LeaderTurn.FollowerTurn.',
+    'Drehung links/rechts', 'Half-Basic', 'Step Tap', 'Vorwärts',
+    'Diagonal Step', 'ÜberKreuz. Vorne/Hinten', 'Rock Step',
+    'Box Step', 'Merengue Step', 'Diagonal Basic', 'Twist Spin', 'Trible Step'
+  ];
+
+  // Categories for each exercise
+  Map<String, Map<String, bool>> exerciseCategories = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _player = FlutterSoundPlayer();
+    _player.openAudioSession();
+    _loadSavedData(); // Load saved checkbox values
+    _startTact(); // Start the beat when the app starts
+  }
+
+  @override
+  void dispose() {
+    _beatTimer?.cancel();
+    _player.closeAudioSession();
+    super.dispose();
+  }
+
+  // Start the beat based on tact value (BPM)
+  void _startTact() {
+    _beatTimer?.cancel(); // Cancel any previous timer
+    int interval = (60000 / _tactValue).round(); // Calculate interval in milliseconds
+
+    _beatTimer = Timer.periodic(Duration(milliseconds: interval), (Timer timer) {
+      _playBeat(); // Play the custom beep sound
+    });
+  }
+
+  // Play a simple beep sound using startPlayerFromBuffer
+  void _playBeat() async {
+    Uint8List beepData = _generateBeep();
+    await _player.startPlayerFromBuffer(beepData, codec: Codec.pcm16WAV);
+  }
+
+  // Generate a simple beep sound buffer as Uint8List
+  Uint8List _generateBeep() {
+    const int sampleRate = 44100;
+    const double durationInSeconds = 0.05; // 50ms beep
+    const double frequency = 440.0; // A4 note
+
+    // List to store the sample data
+    List<int> samples = List<int>.filled((sampleRate * durationInSeconds).toInt(), 0);
+
+    for (int i = 0; i < samples.length; i++) {
+      double t = i / sampleRate;
+      samples[i] = (32767 * 0.5 * (1.0 - 2.0 * (t * frequency - (t * frequency).floor()))).toInt();
+    }
+
+    // Convert the List<int> to Uint8List
+    Uint8List soundBytes = Uint8List.fromList(samples);
+    return soundBytes;
+  }
+
+  // Save the checkbox values to local storage
+  void _saveData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    Map<String, String> savedData = {};
+
+    exerciseCategories.forEach((exercise, categories) {
+      savedData[exercise] = jsonEncode(categories);
+    });
+
+    prefs.setString('exerciseData', jsonEncode(savedData));
+  }
+
+  // Load the saved checkbox values from local storage
+  void _loadSavedData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? savedDataString = prefs.getString('exerciseData');
+
+    if (savedDataString != null) {
+      Map<String, dynamic> savedData = jsonDecode(savedDataString);
+
+      savedData.forEach((exercise, categoriesJson) {
+        Map<String, dynamic> categories = jsonDecode(categoriesJson);
+        exerciseCategories[exercise] = categories.map((category, value) => MapEntry(category, value as bool));
+      });
+    } else {
+      // Initialize default values if there's no saved data
+      exercises.forEach((exercise) {
+        exerciseCategories[exercise] = {
+          'Trained Today': false,
+          'Easy': false,
+          'Middle': false,
+          'Hard': false,
+          'Use More Often': false,
+        };
+      });
+    }
+
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Datenschutz'),
-        backgroundColor: Color(0xFFCB9935), // Same as the app's gold color
+        title: Text('Bachata Training'),
+        backgroundColor: Colors.black87,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Text(
-          'This is the Datenschutz page where privacy policies go...',
-          style: TextStyle(fontFamily: 'Roboto'),
-        ),
+      body: Column(
+        children: [
+          // Slider for adjusting tact
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Text(
+                  'Adjust Tact (BPM): ${_tactValue.toStringAsFixed(0)}',
+                  style: TextStyle(color: Colors.white),
+                ),
+                Slider(
+                  value: _tactValue,
+                  min: 120, // Lower end of normal Bachata BPM range
+                  max: 200, // Higher end of normal Bachata BPM range
+                  divisions: 80,
+                  label: _tactValue.toString(),
+                  onChanged: (double value) {
+                    setState(() {
+                      _tactValue = value;
+                      _startTact(); // Restart tact with new BPM value
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          // List of Exercises
+          Expanded(
+            child: ListView.builder(
+              itemCount: exercises.length,
+              itemBuilder: (context, index) {
+                String exercise = exercises[index];
+                return ExpansionTile(
+                  title: Text(
+                    exercise,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  children: exerciseCategories[exercise]!.keys.map((category) {
+                    return CheckboxListTile(
+                      title: Text(category, style: TextStyle(color: Colors.white70)),
+                      value: exerciseCategories[exercise]![category],
+                      onChanged: (bool? value) {
+                        setState(() {
+                          exerciseCategories[exercise]![category] = value!;
+                          _saveData(); // Save the updated value
+                        });
+                      },
+                      activeColor: Colors.blueAccent,
+                      checkColor: Colors.white,
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
