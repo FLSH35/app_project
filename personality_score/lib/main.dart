@@ -1,7 +1,6 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'dart:async';
 import 'package:flutter_sound/flutter_sound.dart';
+import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
@@ -32,6 +31,7 @@ class _BachataHomePageState extends State<BachataHomePage> {
   double _tactValue = 140; // Default BPM value (within dancing range)
   late FlutterSoundPlayer _player;
   Timer? _beatTimer;
+  bool _isPlaying = false;
 
   // Bachata exercises
   final List<String> exercises = [
@@ -55,15 +55,20 @@ class _BachataHomePageState extends State<BachataHomePage> {
   void initState() {
     super.initState();
     _player = FlutterSoundPlayer();
-    _player.openAudioSession();
+    _initPlayer();  // Initialize the player
     _loadSavedData(); // Load saved checkbox values
     _startTact(); // Start the beat when the app starts
+  }
+
+  // Initialize the player
+  Future<void> _initPlayer() async {
+    await _player.openPlayer();  // openPlayer() should be used in recent versions
   }
 
   @override
   void dispose() {
     _beatTimer?.cancel();
-    _player.closeAudioSession();
+    _player.closePlayer(); // Close the player when done
     super.dispose();
   }
 
@@ -73,33 +78,26 @@ class _BachataHomePageState extends State<BachataHomePage> {
     int interval = (60000 / _tactValue).round(); // Calculate interval in milliseconds
 
     _beatTimer = Timer.periodic(Duration(milliseconds: interval), (Timer timer) {
-      _playBeat(); // Play the custom beep sound
+      _playBeat(); // Play the beep sound
     });
   }
 
-  // Play a simple beep sound using startPlayerFromBuffer
-  void _playBeat() async {
-    Uint8List beepData = _generateBeep();
-    await _player.startPlayerFromBuffer(beepData, codec: Codec.pcm16WAV);
-  }
-
-  // Generate a simple beep sound buffer as Uint8List
-  Uint8List _generateBeep() {
-    const int sampleRate = 44100;
-    const double durationInSeconds = 0.05; // 50ms beep
-    const double frequency = 440.0; // A4 note
-
-    // List to store the sample data
-    List<int> samples = List<int>.filled((sampleRate * durationInSeconds).toInt(), 0);
-
-    for (int i = 0; i < samples.length; i++) {
-      double t = i / sampleRate;
-      samples[i] = (32767 * 0.5 * (1.0 - 2.0 * (t * frequency - (t * frequency).floor()))).toInt();
+  // Play a beep sound from the asset
+  Future<void> _playBeat() async {
+    // Stop the player if it's already playing
+    if (_isPlaying) {
+      await _player.stopPlayer();
     }
 
-    // Convert the List<int> to Uint8List
-    Uint8List soundBytes = Uint8List.fromList(samples);
-    return soundBytes;
+    try {
+      await _player.startPlayer(
+        fromURI: 'assets/beep.mp3',  // Path to the asset
+        codec: Codec.mp3,            // Codec of the audio file
+      );
+      _isPlaying = true;  // Mark that the player is now playing
+    } catch (e) {
+      print("Error: $e");
+    }
   }
 
   // Save the checkbox values to local storage

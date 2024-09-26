@@ -41,4 +41,4 @@ flutter:
     - assets/
     - assets/auswertungen/
     - assets/icons/
-
+    - assets/beep.mp3
