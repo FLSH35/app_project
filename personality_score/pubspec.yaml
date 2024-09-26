@@ -8,8 +8,11 @@ environment:
   sdk: '>=3.0.5 <4.0.0'
 
 dependencies:
+  responsive_builder: ^0.4.1
+  flutter_svg: ^1.1.0+1
   flutter:
     sdk: flutter
+  url_launcher: ^6.0.20
   json_annotation: ^4.3.0
   provider: ^6.1.2
   share_plus: ^9.0.0
@@ -33,3 +36,5 @@ flutter:
 
   assets:
     - assets/
+    - assets/auswertungen/
+    - assets/icons/

@@ -172,7 +172,6 @@ class QuestionnaireScreen extends StatelessWidget {
                           ),
                           onPressed: () {
                             model.completeSecondTest(context);
-                            _showRewardAnimation(context, 'stars.json'); // Show reward animation
                           },
                           child: Text(
                             'Fertigstellen',
@@ -201,35 +200,6 @@ class QuestionnaireScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  void _showRewardAnimation(BuildContext context, String animationAsset) {
-    showDialog(
-      context: context,
-      barrierDismissible: false, // Prevent dismissing by tapping outside
-      builder: (BuildContext context) {
-        Future.delayed(Duration(seconds: 2), () {
-          Navigator.of(context).pop(); // Close the transparent overlay after 2 seconds
-        });
-
-        return Stack(
-          alignment: Alignment.center,
-          children: [
-            // Transparent overlay
-            Container(
-              color: Colors.transparent, // Transparent color
-            ),
-            // Reward animation
-            Lottie.asset(
-              'assets/$animationAsset',
-              width: 150,
-              height: 150,
-              fit: BoxFit.contain,
-            ),
-          ],
-        );
-      },
     );
   }
 }
