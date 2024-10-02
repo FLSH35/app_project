@@ -1,97 +1,119 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:personality_score/auth/auth_service.dart';
+import 'package:personality_score/models/questionaire_model.dart';
+import 'package:flutter_svg/flutter_svg.dart';  // Import the flutter_svg package
+import 'package:personality_score/helper_functions/questionaire_helpers.dart';
+
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
-  final List<Map<String, String>> personalityTypes;
 
-  CustomAppBar({required this.title, required this.personalityTypes});
+  CustomAppBar({required this.title});
 
   @override
   Widget build(BuildContext context) {
-    return AppBar(
-      backgroundColor: Color(0xFF020202),
-      leading: IconButton(
-        icon: Image.asset('assets/goldbaum.webp'), // Replace with the actual path to your logo PNG
-        onPressed: () {
-          Navigator.of(context).pushNamed('/home');
-        },
-      ),
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+    return Container(
+      color: Color(0xFF020202),
+      // Make the container transparent to match the background
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      // Padding for spacing
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        // Ensure the column doesn't take unnecessary space
         children: [
-          Container(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                DropdownButton<String>(
-                  dropdownColor: Color(0xFF242424),
-                  items: personalityTypes.map((type) {
-                    return DropdownMenuItem<String>(
-                      value: type["value"],
-                      child: Text(
-                        type["name"]!,
-                        style: TextStyle(color: Colors.white, fontFamily: 'Roboto'),
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      Navigator.of(context).pushNamed(
-                        '/personality_types',
-                        arguments: value,
-                      );
-                    }
-                  },
-                  hint: Text(
-                    "Personality Types",
-                    style: TextStyle(color: Colors.white, fontFamily: 'Roboto'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Consumer<AuthService>(
+                builder: (context, authService, child) {
+                  return IconButton(
+                    icon: Icon(Icons.person, color: _getIconColor(context, '/profile')),
+                    onPressed: () {
+                      if (authService.user == null) {
+                        Navigator.of(context).pushNamed('/signin');
+                      } else {
+                        Navigator.of(context).pushNamed('/profile');
+                      }
+                    },
+                  );
+                },
+              ),
+              SizedBox(width: 10),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFFCB9935), // Button background color
+                  elevation: 0, // No shadow effect
+                  shape: RoundedRectangleBorder( // Create square corners
+                    borderRadius: BorderRadius.all(Radius.circular(8.0)), // No rounded corners
                   ),
                 ),
-                SizedBox(width: 10),
-                DropdownButton<String>(
-                  dropdownColor: Color(0xFF242424),
-                  items: [
-                    DropdownMenuItem(
-                      value: "a",
-                      child: Text("a", style: TextStyle(color: Colors.white, fontFamily: 'Roboto')),
-                    ),
-                    DropdownMenuItem(
-                      value: "b",
-                      child: Text("b", style: TextStyle(color: Colors.white, fontFamily: 'Roboto')),
-                    ),
-                  ],
-                  onChanged: (value) {},
-                  hint: Text(
-                    "Team Description",
-                    style: TextStyle(color: Colors.white, fontFamily: 'Roboto'),
-                  ),
+                onPressed: () {
+                  handleTakeTest(context); // Your button action
+                },
+                child: Text(
+                  'Beginne den Test',
+                  style: TextStyle(color: Colors.white, fontFamily: 'Roboto'),
                 ),
-              ],
-            ),
+              ),
+
+              SizedBox(width: 20),
+              // Add space between the buttons and the right end
+            ],
+          ),
+          SizedBox(height: 8), // Space between the two rows
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildNavButton(context, 'ALLGEMEIN', '/home'),
+              SizedBox(width: 10),
+              SvgPicture.asset(
+                'assets/logo.svg', // Your logo file
+                height: 40, // Adjust logo size if needed
+              ),
+              SizedBox(width: 10),
+              _buildNavButton(
+                  context, 'STUFEN', '/personality_types'),
+            ],
           ),
         ],
       ),
-      actions: [
-        IconButton(
-          icon: Icon(Icons.person, color: Color(0xFFCB9935)),
-          onPressed: () {
-            Navigator.of(context).pushNamed('/profile');
-          },
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: Color(0xFFCB9935)),
-          onPressed: () {
-            Navigator.of(context).pushNamed('/questionnaire');
-          },
-          child: Text(
-            'Take the Test ->',
-            style: TextStyle(color: Colors.white, fontFamily: 'Roboto'),
-          ),
-        ),
-      ],
     );
   }
 
   @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => Size.fromHeight(kToolbarHeight + 60); //
+
+  Widget _buildNavButton(BuildContext context, String label, String route) {
+    bool isSelected = ModalRoute
+        .of(context)
+        ?.settings
+        .name == route;
+    return TextButton(
+      style: TextButton.styleFrom(
+        backgroundColor: Colors.transparent, // No background color
+        padding: EdgeInsets.symmetric(horizontal: 20),
+      ),
+      onPressed: () {
+        Navigator.of(context).pushReplacementNamed(route);
+      },
+      child: Text(
+        label,
+        style: TextStyle(
+          color: isSelected ? Color(0xFFCB9935) : Colors.white,
+          // Gold when selected
+          fontFamily: 'Roboto',
+        ),
+      ),
+    );
+  }
+
+  Color _getIconColor(BuildContext context, String route) {
+    return ModalRoute.of(context)?.settings.name == route
+        ? Color(0xFFCB9935) // Gold when on the profile page
+        : Colors.white; // Default color for the icon
+  }
 }
+
+
+

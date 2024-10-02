@@ -9,8 +9,8 @@ class AuthService with ChangeNotifier {
   User? get user => _user;
   String? get errorMessage => _errorMessage;
 
-  AuthService() {
-    _auth.authStateChanges().listen(_onAuthStateChanged);
+  AuthService(BuildContext context) {
+    _auth.authStateChanges().listen((user) => _onAuthStateChanged(user, context));
   }
 
   Future<void> signUpWithEmail(String email, String password) async {
@@ -35,13 +35,16 @@ class AuthService with ChangeNotifier {
     await _auth.signOut();
   }
 
-
-  void _onAuthStateChanged(User? user) {
+  void _onAuthStateChanged(User? user, BuildContext context) {
     _user = user;
     _errorMessage = null;  // Clear error message on successful sign-in
     notifyListeners();
-  }
 
+    if (_user != null) {
+      // Navigate to profile screen when authenticated
+      Navigator.of(context).pushReplacementNamed('/profile');
+    }
+  }
 
   Future<void> updateDisplayName(String displayName) async {
     if (_user != null) {

@@ -1,17 +1,16 @@
-// personality_types_page.dart
+// personality_types_desktop_layout.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Für rootBundle
+import 'package:flutter/services.dart'; // For rootBundle
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:responsive_builder/responsive_builder.dart';
-import 'personality_types_desktop_layout.dart'; // Importiere das Desktop-Layout
-import 'mobile_sidebar.dart'; // Importiere die mobile Sidebar
+import '../helper_functions/questionaire_helpers.dart';
+import 'custom_app_bar.dart';
 
-class PersonalityTypesPage extends StatefulWidget {
+class PersonalityTypesDesktopLayout extends StatefulWidget {
   @override
-  _PersonalityTypesPageState createState() => _PersonalityTypesPageState();
+  _PersonalityTypesDesktopLayoutState createState() => _PersonalityTypesDesktopLayoutState();
 }
 
-class _PersonalityTypesPageState extends State<PersonalityTypesPage> {
+class _PersonalityTypesDesktopLayoutState extends State<PersonalityTypesDesktopLayout> {
   final List<Map<String, String>> personalityTypes = [
     {
       "name": "Stufe 1: Anonymous",
@@ -55,16 +54,16 @@ class _PersonalityTypesPageState extends State<PersonalityTypesPage> {
     },
   ];
 
-  // Map zum Speichern der geladenen Beschreibungen
+  // Map to hold the loaded descriptions
   Map<String, String> loadedDescriptions = {};
 
   @override
   void initState() {
     super.initState();
-    _loadDescriptions(); // Beschreibungen laden
+    _loadDescriptions(); // Call the method here
   }
 
-  // Methode zum Laden der Beschreibungen aus den .txt-Dateien
+  // The _loadDescriptions method is placed inside the state class
   Future<void> _loadDescriptions() async {
     for (var type in personalityTypes) {
       String name = type['name']!;
@@ -76,36 +75,29 @@ class _PersonalityTypesPageState extends State<PersonalityTypesPage> {
         });
       } catch (e) {
         setState(() {
-          loadedDescriptions[name] = 'Beschreibung nicht verfügbar.';
+          loadedDescriptions[name] = 'Description not available.';
         });
-        print('Fehler beim Laden der Beschreibung für $name: $e');
+        print('Error loading description for $name: $e');
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return ScreenTypeLayout(
-      mobile: _buildMobileLayout(context), // Mobiles Layout
-      desktop: PersonalityTypesDesktopLayout(), // Desktop-Layout
-    );
-  }
-
-  // Mobiles Layout
-  Widget _buildMobileLayout(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
       backgroundColor: Color(0xFF242424),
-      endDrawer: MobileSidebar(), // Mobile Sidebar
-      appBar: _buildAppBar(context), // AppBar für Mobile
+      appBar: CustomAppBar(
+        title: 'Personality Score',
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Header-Bereich
+            // Header Section
             Container(
-              height: MediaQuery.of(context).size.height / 3,
+              height: screenHeight / 3,
               decoration: BoxDecoration(
                 color: Colors.transparent,
               ),
@@ -116,9 +108,9 @@ class _PersonalityTypesPageState extends State<PersonalityTypesPage> {
                     "Die 8 Persönlichkeitsstufen",
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 40, // Angepasste Schriftgröße für Mobile
+                      fontSize: 60,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: Colors.white,
                       fontFamily: 'Roboto',
                     ),
                   ),
@@ -128,8 +120,8 @@ class _PersonalityTypesPageState extends State<PersonalityTypesPage> {
                       "Lerne das Modell kennen.",
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 18, // Angepasste Schriftgröße für Mobile
-                        color: Colors.black,
+                        fontSize: 22,
+                        color: Colors.white,
                         fontFamily: 'Roboto',
                       ),
                     ),
@@ -137,7 +129,7 @@ class _PersonalityTypesPageState extends State<PersonalityTypesPage> {
                 ],
               ),
             ),
-            // Persönlichkeits-Typen
+            // Personality Types Section
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -148,6 +140,7 @@ class _PersonalityTypesPageState extends State<PersonalityTypesPage> {
                     children: personalityTypes.asMap().entries.map((entry) {
                       int index = entry.key;
                       Map<String, String> type = entry.value;
+                      bool isOdd = index % 2 == 1;
                       String name = type['name']!;
                       String image = type['image']!;
                       String? description = loadedDescriptions[name];
@@ -155,15 +148,16 @@ class _PersonalityTypesPageState extends State<PersonalityTypesPage> {
                       return PersonalityTypeCard(
                         name: name,
                         image: image,
-                        description: description ?? 'Lädt...', // Zeige 'Lädt...' wenn noch nicht geladen
+                        description: description ?? 'Loading...', // Show 'Loading...' if not yet loaded
+                        isOdd: isOdd,
                       );
                     }).toList(),
                   ),
                 ],
               ),
             ),
-            SizedBox(height: 50),
-            // Footer mit Hintergrundbild und Button
+            SizedBox(height: 350),
+            // Footer Section with Background Image and Button
             Stack(
               children: [
                 Positioned.fill(
@@ -181,7 +175,7 @@ class _PersonalityTypesPageState extends State<PersonalityTypesPage> {
                         Text(
                           "Die 8 Stufen der Persönlichkeitsentwicklung – auf welcher stehst du?",
                           style: TextStyle(
-                            fontSize: screenHeight * 0.035, // Angepasst für Mobile
+                            fontSize: screenHeight * 0.042,
                             fontWeight: FontWeight.bold,
                             color: Colors.black,
                             fontFamily: 'Roboto',
@@ -189,12 +183,10 @@ class _PersonalityTypesPageState extends State<PersonalityTypesPage> {
                         ),
                         SizedBox(height: 50),
                         ElevatedButton(
-
-
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Color(0xFFCB9935),
-                            shape: RoundedRectangleBorder( // Create square corners
-                              borderRadius: BorderRadius.all(Radius.circular(8.0)), // No rounded corners
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(8.0)),
                             ),
                             padding: EdgeInsets.symmetric(
                               horizontal: screenWidth * 0.07,
@@ -202,6 +194,7 @@ class _PersonalityTypesPageState extends State<PersonalityTypesPage> {
                             ),
                           ),
                           onPressed: () {
+                            // Implement your handleTakeTest(context) method
                             handleTakeTest(context);
                           },
                           child: Text(
@@ -219,51 +212,26 @@ class _PersonalityTypesPageState extends State<PersonalityTypesPage> {
                 ),
               ],
             ),
-            SizedBox(height: 50),
+            SizedBox(height: 350),
           ],
         ),
       ),
     );
   }
 
-  // AppBar für Mobile mit Menü-Button
-  AppBar _buildAppBar(BuildContext context) {
-    return AppBar(
-      title: Text(
-        'Personality Types',
-        style: TextStyle(color: Colors.black),
-      ),
-      backgroundColor: Colors.grey[300],
-      iconTheme: IconThemeData(color: Colors.black),
-      actions: [
-        Builder(
-          builder: (context) => IconButton(
-            icon: Icon(Icons.menu),
-            onPressed: () {
-              Scaffold.of(context).openEndDrawer(); // Öffne die Sidebar
-            },
-          ),
-        ),
-      ],
-      automaticallyImplyLeading: false, // Entferne den Zurück-Button für Mobile
-    );
-  }
-
-  // Implementiere deine handleTakeTest-Methode
-  void handleTakeTest(BuildContext context) {
-    // Navigiere zur Testseite oder implementiere die gewünschte Funktionalität
-  }
 }
 
 class PersonalityTypeCard extends StatefulWidget {
   final String name;
   final String image;
   final String description;
+  final bool isOdd;
 
   PersonalityTypeCard({
     required this.name,
     required this.image,
     required this.description,
+    required this.isOdd,
   });
 
   @override
@@ -279,16 +247,19 @@ class _PersonalityTypeCardState extends State<PersonalityTypeCard> {
     if (isExpanded) {
       displayDescription = widget.description;
     } else {
-      // Zeige nur die ersten 30 Wörter
+      // Show only the first 45 words
       List<String> words = widget.description.split(' ');
-      if (words.length > 30) {
-        displayDescription = words.sublist(0, 30).join(' ') + '...';
+      if (words.length > 45) {
+        displayDescription = words.sublist(0, 45).join(' ') + '...';
       } else {
         displayDescription = widget.description;
       }
     }
 
-    // Definiere den Button-Stil
+    // Set a fixed height for the card
+    double cardHeight = 600; // Adjust this value as needed
+
+    // Define the button style
     final ButtonStyle buttonStyle = ElevatedButton.styleFrom(
       padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0),
       backgroundColor: isExpanded ? Colors.black : Color(0xFFCB9935),
@@ -301,69 +272,132 @@ class _PersonalityTypeCardState extends State<PersonalityTypeCard> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Card(
-        color: Color(0xFFF7F5EF),
+        color: Color(0xFFC7C7C7),
         margin: EdgeInsets.all(20),
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            children: [
-              Image.asset(
-                widget.image,
-                width: MediaQuery.of(context).size.width * 0.7,
-                height: 200,
-                fit: BoxFit.contain,
-              ),
-              SizedBox(height: 20),
-              Text(
-                widget.name,
-                style: TextStyle(
-                  fontSize: 30, // Angepasste Schriftgröße für Mobile
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              SizedBox(height: 20),
-              // Scrollbarer Bereich für die Beschreibung
-              isExpanded
-                  ? Container(
-                height: 200, // Festgelegte Höhe für den scrollbaren Bereich
-                child: SingleChildScrollView(
-                  child: Text(
-                    displayDescription,
-                    style: TextStyle(
-                      fontSize: 18, // Angepasste Schriftgröße für Mobile
-                      color: Colors.black,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              )
-                  : Text(
-                displayDescription,
-                style: TextStyle(
-                  fontSize: 18, // Angepasste Schriftgröße für Mobile
-                  color: Colors.black,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 10),
-              ElevatedButton(
-                style: buttonStyle,
-                onPressed: () {
-                  setState(() {
-                    isExpanded = !isExpanded;
-                  });
-                },
-                child: Text(
-                  isExpanded ? 'Lese weniger' : 'Lese weiter',
+        child: SizedBox(
+          height: cardHeight,
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: isExpanded
+                ? Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  widget.name,
                   style: TextStyle(
-                    color: Colors.white,
-                    fontFamily: 'Roboto',
-                    fontSize: 18,
+                    fontSize: 60,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
                   ),
                 ),
-              ),
-            ],
+                SizedBox(height: 20),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Text(
+                      displayDescription,
+                      style: TextStyle(
+                        fontSize: 22,
+                        color: Colors.black,
+                      ),
+                      textAlign: TextAlign.left,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 10),
+                ElevatedButton(
+                  style: buttonStyle,
+                  onPressed: () {
+                    setState(() {
+                      isExpanded = false;
+                    });
+                  },
+                  child: Text(
+                    'Lese weniger',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontFamily: 'Roboto',
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
+              ],
+            )
+                : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (!widget.isOdd)
+                  Expanded(
+                    flex: 1,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: SizedBox(
+                        width: 500,
+                        height: 500,
+                        child: Image.asset(widget.image),
+                      ),
+                    ),
+                  ),
+                Expanded(
+                  flex: 1,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        widget.name,
+                        style: TextStyle(
+                          fontSize: 60,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.topLeft,
+                          child: Text(
+                            displayDescription,
+                            style: TextStyle(
+                              fontSize: 22,
+                              color: Colors.black,
+                            ),
+                            textAlign: TextAlign.left,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      ElevatedButton(
+                        style: buttonStyle,
+                        onPressed: () {
+                          setState(() {
+                            isExpanded = true;
+                          });
+                        },
+                        child: Text(
+                          'Lese weiter',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontFamily: 'Roboto',
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (widget.isOdd)
+                  Expanded(
+                    flex: 1,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: SizedBox(
+                        width: 500,
+                        height: 500,
+                        child: Image.asset(widget.image),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
