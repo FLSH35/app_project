@@ -220,7 +220,7 @@ Im nächsten Fragensegment engen wir dein Ergebnis noch weiter ein. Viel Spaß!
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Color(0xFFF7F5EF), // Soft background
+          backgroundColor: Color(0xFFC7C7C7), // Soft background
           title: Text('$_totalScore Punkte erreicht', style: TextStyle(color: Colors.black, fontFamily: 'Roboto')),
           content: SingleChildScrollView(
             child: Column(
@@ -316,7 +316,7 @@ Im letzten Fragensegment finden wir heraus, ob du eher der Stufe „Anonymous“
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Color(0xFFF7F5EF),
+          backgroundColor: Color(0xFFC7C7C7),
           title: Text(
             '$_totalScore Punkte erreicht',
             style: TextStyle(fontFamily: 'Roboto'),
@@ -433,7 +433,7 @@ Im letzten Fragensegment finden wir heraus, ob du eher der Stufe „Anonymous“
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Color(0xFFF7F5EF),
+          backgroundColor: Color(0xFFC7C7C7),
           title: Text('$greetingText, deine Persönlichkeitsstufe',
               style: TextStyle(color: Colors.black, fontFamily: 'Roboto')),
           content: StatefulBuilder(

@@ -38,63 +38,62 @@ class _QuestionnaireDesktopLayoutState extends State<QuestionnaireDesktopLayout>
 
   @override
   Widget build(BuildContext context) {
+    final model = Provider.of<QuestionnaireModel>(context); // Retrieve the model
+
     return Scaffold(
-      appBar: CustomAppBar(
-        title: 'Personality Score',
-      ),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : Stack(
+      backgroundColor: Colors.black,
+      body: Stack(
         children: [
-          Positioned.fill(
+          Padding(
+            padding: EdgeInsets.only(top: kToolbarHeight + 70), // Adjust padding to push content below the progress bar
             child: Container(
               color: Color(0xFF242424),
-            ),
-          ),
-          Consumer2<AuthService, QuestionnaireModel>(
-            builder: (context, authService, model, child) {
-              if (authService.user == null) {
-                Future.microtask(() {
-                  Navigator.of(context).pushNamed('/signin');
-                });
-                return SizedBox.shrink();
-              }
-
-              return _buildQuestionnaire(context, model);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuestionnaire(BuildContext context, QuestionnaireModel model) {
-    int totalSteps = (model.questions.length / 7).ceil();
-    int currentStep = model.currentPage;
-
-    return Column(
-      children: [
-        // Progress bar stays on top and does not scroll
-        CustomProgressBar(totalSteps: totalSteps, currentStep: currentStep),
-        // Scrollable content
-        Expanded(
-          child: SingleChildScrollView(
-            controller: widget.scrollController,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 80.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  SizedBox(height: 40),
-                  _buildQuestionsList(context, model),
-                  _buildNavigationButtons(context, model),
-                  SizedBox(height: 40),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      controller: widget.scrollController,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 40.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SizedBox(height: 20),
+                            _buildQuestionsList(context, model),
+                            _buildNavigationButtons(context, model),
+                            SizedBox(height: 20),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
           ),
-        ),
-      ],
+
+          // Custom AppBar at the top
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: CustomAppBar(
+              title: 'Personality Score',
+            ),
+          ),
+
+          // Progress bar at the top, in front of everything
+          Positioned(
+            top: kToolbarHeight + 60,
+            left: 0,
+            right: 0,
+            child: CustomProgressBar(
+              totalSteps: (model.questions.length / 7).ceil(),
+              currentStep: model.currentPage,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -107,68 +106,73 @@ class _QuestionnaireDesktopLayoutState extends State<QuestionnaireDesktopLayout>
     return Column(
       children: currentQuestions.map((question) {
         int questionIndex = start + currentQuestions.indexOf(question);
-        return Card(
-          color: Color(0xFFC7C7C7), // Set the card color here
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.0),
+        return Container(
+          margin: EdgeInsets.symmetric(vertical: 10.0), // Adjusted to reduce vertical space
+          padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0),
+          decoration: BoxDecoration(
+            color: Color(0xFF242424),
+            borderRadius: BorderRadius.circular(8.0),
           ),
-          margin: EdgeInsets.all(30.0),
-          child: Container(
-            height: MediaQuery.of(context).size.height / 4, // Each question takes 1/4 of the screen height
-            padding: EdgeInsets.symmetric(
-                vertical: 10.0, horizontal: MediaQuery.of(context).size.width / 5),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12.0),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Flexible(
-                  child: Text(
-                    question.text,
-                    style: TextStyle(color: Colors.black, fontFamily: 'Roboto', fontSize: 22),
-                    textAlign: TextAlign.center,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Question text on the left side
+              Expanded(
+                flex: 3,
+                child: Text(
+                  question.text,
+                  style: TextStyle(color: Colors.white, fontFamily: 'Roboto', fontSize: 18),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: 8.0),
-                Slider(
-                  value: (model.answers[questionIndex] ?? 0).toDouble(),
-                  onChanged: (val) {
-                    model.answerQuestion(questionIndex, val.toInt());
-                  },
-                  min: 0,
-                  max: 10,
-                  divisions: 10,
-                  label: model.answers[questionIndex]?.toString() ?? '0',
-                  activeColor: Color(0xFFCB9935),
-                  inactiveColor: Colors.grey,
-                  thumbColor: Color(0xFFCB9935),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              ),
+
+              // Slider on the right side
+              Expanded(
+                flex: 2,
+                child: Column(
                   children: [
-                    Text(
-                      'NEIN',
-                      style: TextStyle(color: Colors.grey[900], fontSize: 12, fontWeight: FontWeight.w300),
+                    Slider(
+                      value: (model.answers[questionIndex] ?? 0).toDouble(),
+                      onChanged: (val) {
+                        model.answerQuestion(questionIndex, val.toInt());
+                      },
+                      min: 0,
+                      max: 10,
+                      divisions: 10,
+                      label: model.answers[questionIndex]?.toString() ?? '0',
+                      activeColor: Color(0xFFCB9935),
+                      inactiveColor: Colors.grey,
+                      thumbColor: Color(0xFFCB9935),
                     ),
-                    Text(
-                      'EHER NEIN',
-                      style: TextStyle(color: Colors.grey[900], fontSize: 12, fontWeight: FontWeight.w300),
-                    ),
-                    Text(
-                      'EHER JA',
-                      style: TextStyle(color: Colors.grey[900], fontSize: 12, fontWeight: FontWeight.w300),
-                    ),
-                    Text(
-                      'JA',
-                      style: TextStyle(color: Colors.grey[900], fontSize: 12, fontWeight: FontWeight.w300),
+                    SizedBox(height: 8.0),
+
+                    // Text labels below the slider
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'NEIN',
+                          style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w300),
+                        ),
+                        Text(
+                          'EHER NEIN',
+                          style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w300),
+                        ),
+                        Text(
+                          'EHER JA',
+                          style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w300),
+                        ),
+                        Text(
+                          'JA',
+                          style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w300),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       }).toList(),
@@ -176,16 +180,22 @@ class _QuestionnaireDesktopLayoutState extends State<QuestionnaireDesktopLayout>
   }
 
 
+
+
+
   Widget _buildNavigationButtons(BuildContext context, QuestionnaireModel model) {
-    int end = (model.currentPage + 1) * 7;
+    int questionsPerPage = 7; // Number of questions per page
+    int start = model.currentPage * questionsPerPage;
+    int end = start + questionsPerPage;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
+        // Previous page button
         if (model.currentPage > 0)
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0),
+              padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 40.0),
               backgroundColor: Colors.black,
               side: BorderSide(color: Color(0xFFCB9935)),
               shape: RoundedRectangleBorder(
@@ -195,13 +205,16 @@ class _QuestionnaireDesktopLayoutState extends State<QuestionnaireDesktopLayout>
             onPressed: () => model.prevPage(),
             child: Text(
               'Zurück',
-              style: TextStyle(color: Colors.white, fontFamily: 'Roboto', fontSize: 18),
+              style: TextStyle(
+                  color: Colors.white, fontFamily: 'Roboto', fontSize: 18),
             ),
           ),
+
+        // Next page button
         if (end < model.questions.length)
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0),
+              padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 40.0),
               backgroundColor: Color(0xFFCB9935),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.all(Radius.circular(8.0)),
@@ -213,12 +226,79 @@ class _QuestionnaireDesktopLayoutState extends State<QuestionnaireDesktopLayout>
             },
             child: Text(
               'Weiter',
-              style: TextStyle(color: Colors.white, fontFamily: 'Roboto', fontSize: 18),
+              style: TextStyle(
+                  color: Colors.white, fontFamily: 'Roboto', fontSize: 18),
+            ),
+          ),
+
+        // "Fertigstellen" button for the first test
+        if (end >= model.questions.length && !model.isFirstTestCompleted)
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 40.0),
+              backgroundColor: Color(0xFFCB9935),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(8.0)),
+              ),
+            ),
+            onPressed: () {
+              model.completeFirstTest(context);
+              _scrollToFirstQuestion(context);
+            },
+            child: Text(
+              'Fertigstellen',
+              style: TextStyle(
+                  color: Colors.white, fontFamily: 'Roboto', fontSize: 18),
+            ),
+          ),
+
+        // "Fertigstellen" button for the second test
+        if (end >= model.questions.length &&
+            model.isFirstTestCompleted &&
+            !model.isSecondTestCompleted)
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 40.0),
+              backgroundColor: Color(0xFFCB9935),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(8.0)),
+              ),
+            ),
+            onPressed: () {
+              model.completeSecondTest(context);
+              _scrollToFirstQuestion(context);
+            },
+            child: Text(
+              'Fertigstellen',
+              style: TextStyle(
+                  color: Colors.black, fontFamily: 'Roboto', fontSize: 18),
+            ),
+          ),
+
+        // Final "Fertigstellen" button for the last test
+        if (end >= model.questions.length && model.isSecondTestCompleted)
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 40.0),
+              backgroundColor: Color(0xFFCB9935),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(8.0)),
+              ),
+            ),
+            onPressed: () {
+              model.completeFinalTest(context);
+              _scrollToFirstQuestion(context);
+            },
+            child: Text(
+              'Fertigstellen',
+              style: TextStyle(
+                  color: Colors.white, fontFamily: 'Roboto', fontSize: 18),
             ),
           ),
       ],
     );
   }
+
 
   void _scrollToFirstQuestion(BuildContext context) {
     final double questionPosition = MediaQuery.of(context).size.height / 3;
@@ -231,33 +311,6 @@ class _QuestionnaireDesktopLayoutState extends State<QuestionnaireDesktopLayout>
 }
 
 
-  void _showRewardAnimation(BuildContext context, String animationAsset) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        Future.delayed(Duration(seconds: 2), () {
-          Navigator.of(context).pop();
-        });
-
-        return Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              color: Colors.transparent,
-            ),
-            Lottie.asset(
-              'assets/$animationAsset',
-              width: 150,
-              height: 150,
-              fit: BoxFit.contain,
-            ),
-          ],
-        );
-      },
-    );
-  }
-
 
 class CustomProgressBar extends StatelessWidget {
   final int totalSteps;
@@ -268,7 +321,7 @@ class CustomProgressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 80.0),
+      padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 0.0),
       child: Row(
         children: List.generate(totalSteps, (index) {
           return Expanded(
@@ -285,7 +338,7 @@ class CustomProgressBar extends StatelessWidget {
                   child: index < currentStep
                       ? Icon(
                     Icons.check,
-                    color: Colors.black,
+                    color: Colors.white,
                     size: 18,
                   )
                       : Container(),
