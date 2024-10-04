@@ -288,13 +288,13 @@ class QuestionnaireScreen extends StatelessWidget {
   }
 
   void _scrollToFirstQuestion(BuildContext context) {
-    final double questionPosition = MediaQuery.of(context).size.height / 4;
     _scrollController.animateTo(
-      questionPosition,
+      0.0, // Scroll to the very top
       duration: Duration(seconds: 1),
       curve: Curves.easeInOut,
     );
   }
+
 }
 
 class CustomProgressBar extends StatelessWidget {

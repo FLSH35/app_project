@@ -301,13 +301,13 @@ class _QuestionnaireDesktopLayoutState extends State<QuestionnaireDesktopLayout>
 
 
   void _scrollToFirstQuestion(BuildContext context) {
-    final double questionPosition = MediaQuery.of(context).size.height / 3;
     widget.scrollController.animateTo(
-      questionPosition,
+      0.0, // Scroll to the very top
       duration: Duration(seconds: 1),
       curve: Curves.easeInOut,
     );
   }
+
 }
 
 
