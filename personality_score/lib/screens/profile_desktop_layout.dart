@@ -110,7 +110,7 @@ class _ProfileDesktopLayoutState extends State<ProfileDesktopLayout> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                            'Du bist ein ${widget.finalCharacterData?['finalCharacter']}',
+                            '${widget.finalCharacterData!['combinedTotalScore']} Punkte erreicht!\nDu bist ein ${widget.finalCharacterData?['finalCharacter']}!',
                             style: TextStyle(
                                 color: Colors.black,
                                 fontFamily: 'Roboto')),
@@ -218,8 +218,7 @@ class _ProfileDesktopLayoutState extends State<ProfileDesktopLayout> {
                     ),
                   ),
                   onPressed: () {
-                    String shareText =
-                        'Du bist ein ${widget.finalCharacterData!['finalCharacter']}.\n\nBeschreibung: ${widget.finalCharacterData!['finalCharacterDescription']}';
+                    String shareText = '${widget.finalCharacterData!['combinedTotalScore']} Punkte erreicht!\nDu bist ein ${widget.finalCharacterData!['finalCharacter']}.\n\nBeschreibung: ${widget.finalCharacterData!['finalCharacterDescription']}';
                     Share.share(shareText);
                   },
                   child: Text('Teilen',

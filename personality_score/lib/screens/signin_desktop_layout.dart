@@ -74,6 +74,16 @@ class _SignInDesktopLayoutState extends State<SignInDesktopLayout> {
                     ),
                     SizedBox(height: 20),
 
+                    // Link to Sign Up
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pushReplacementNamed('/signup');
+                      },
+                      child: Text('Don\'t have an account? Sign Up', style: TextStyle(color: Colors.lightBlue, backgroundColor: Colors.black12),),
+                    ),
+
+                    SizedBox(height: 20),
+
                     // Sign In Button
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
@@ -100,13 +110,6 @@ class _SignInDesktopLayoutState extends State<SignInDesktopLayout> {
                       child: Text('Sign In'),
                     ),
 
-                    // Link to Sign Up
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pushReplacementNamed('/signup');
-                      },
-                      child: Text('Don\'t have an account? Sign Up', style : TextStyle(color: Colors.grey)),
-                    ),
 
                     // Error Message
                     Consumer<AuthService>(
