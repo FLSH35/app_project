@@ -12,6 +12,8 @@ class QuestionnaireModel with ChangeNotifier {
   List<Question> _questions = [];
   int _currentQuestionIndex = 0;
 
+  int score_factor= 0;
+
 
   int _totalScore = 0;  // Store total score across all sets
   int _firstTestScore = 0;  // Track score for the first test
@@ -192,7 +194,7 @@ class QuestionnaireModel with ChangeNotifier {
 
   void completeFirstTest(BuildContext context) {
     _isFirstTestCompleted = true;
-
+    score_factor += _questions.length;
 
     _firstTestScore = _totalScore;  // Save the first test score
 
@@ -281,6 +283,7 @@ Im nächsten Fragensegment engen wir dein Ergebnis noch weiter ein. Viel Spaß!
 
   void completeSecondTest(BuildContext context) {
     _isSecondTestCompleted = true;
+    score_factor += _questions.length;
 
     _secondTestScore = _totalScore;  // Save the second test score
 
@@ -399,9 +402,9 @@ Im letzten Fragensegment finden wir heraus, ob du eher der Stufe „Anonymous“
 
   void completeFinalTest(BuildContext context) async {
     _finalTestScore = _totalScore;  // Save the final test score
-
+    score_factor += _questions.length;
     // Calculate the combined total score
-    int combinedTotalScore = _firstTestScore + _secondTestScore + _finalTestScore;
+    int combinedTotalScore = ((_firstTestScore + _secondTestScore + _finalTestScore)/score_factor*10).round();
     String finalCharacter;
 
     int possibleScore = _questions.length * 3; // Calculate possible score for the final set

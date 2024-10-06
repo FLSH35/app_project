@@ -138,7 +138,7 @@ class _ProfileDesktopLayoutState extends State<ProfileDesktopLayout> {
                                   widget.finalCharacterData![
                                   'finalCharacterDescription']
                                       .split('. ')
-                                      .take(7)
+                                      .take(4)
                                       .join('. ') +
                                       '...',
                                   style: TextStyle(

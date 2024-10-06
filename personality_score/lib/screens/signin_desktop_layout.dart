@@ -42,35 +42,58 @@ class _SignInDesktopLayoutState extends State<SignInDesktopLayout> {
                     TextField(
                       controller: widget.emailController,
                       decoration: InputDecoration(
-        labelText: 'Email',
-        labelStyle: TextStyle(color: Colors.grey),
-        enabledBorder: UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.grey),
-        ),
-        focusedBorder: UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.grey),
-        ),
-      ),
+                        labelText: 'Email',
+                        labelStyle: TextStyle(color: Colors.grey),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.grey),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.grey),
+                        ),
+                      ),
                       style: TextStyle(color: Colors.grey), // Set email text color to white
                     ),
                     SizedBox(height: 20),
 
-// Password Input
+                    // Password Input
                     TextField(
-                        controller: widget.passwordController,
-                        decoration: InputDecoration(
-                          labelText: 'Password',
-                          labelStyle: TextStyle(color: Colors.grey),
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.grey),
-                          ),
-                          focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.grey),
-                          ),
+                      controller: widget.passwordController,
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        labelStyle: TextStyle(color: Colors.grey),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.grey),
                         ),
-
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.grey),
+                        ),
+                      ),
                       obscureText: true,
                       style: TextStyle(color: Colors.white), // Set password text color to white
+                    ),
+                    SizedBox(height: 20),
+
+                    // Forgot Password Button
+                    TextButton(
+                      onPressed: () async {
+                        if (widget.emailController.text.isNotEmpty) {
+                          final authService = Provider.of<AuthService>(context, listen: false);
+                          await authService.sendPasswordResetEmail(widget.emailController.text);
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text("Password reset link sent to ${widget.emailController.text}"),
+                            backgroundColor: Colors.green,
+                          ));
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text("Please enter your email address to reset password."),
+                            backgroundColor: Colors.red,
+                          ));
+                        }
+                      },
+                      child: Text(
+                        'Forgot Password?',
+                        style: TextStyle(color: Colors.lightBlue, backgroundColor: Colors.black12),
+                      ),
                     ),
                     SizedBox(height: 20),
 
@@ -79,7 +102,10 @@ class _SignInDesktopLayoutState extends State<SignInDesktopLayout> {
                       onPressed: () {
                         Navigator.of(context).pushReplacementNamed('/signup');
                       },
-                      child: Text('Don\'t have an account? Sign Up', style: TextStyle(color: Colors.lightBlue, backgroundColor: Colors.black12),),
+                      child: Text(
+                        'Don\'t have an account? Sign Up',
+                        style: TextStyle(color: Colors.lightBlue, backgroundColor: Colors.black12),
+                      ),
                     ),
 
                     SizedBox(height: 20),
@@ -110,7 +136,6 @@ class _SignInDesktopLayoutState extends State<SignInDesktopLayout> {
                       child: Text('Sign In'),
                     ),
 
-
                     // Error Message
                     Consumer<AuthService>(
                       builder: (context, authService, child) {
@@ -128,7 +153,10 @@ class _SignInDesktopLayoutState extends State<SignInDesktopLayout> {
                     if (userName != null)
                       Text(
                         'Hello, $userName!',
-                        style: TextStyle(color: Colors.white,fontSize: 28, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold),
                       ),
                     SizedBox(height: 20),
 
@@ -201,5 +229,4 @@ class _SignInDesktopLayoutState extends State<SignInDesktopLayout> {
       }
     }
   }
-
 }
