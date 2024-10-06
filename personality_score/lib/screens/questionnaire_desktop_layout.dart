@@ -299,7 +299,6 @@ class _QuestionnaireDesktopLayoutState extends State<QuestionnaireDesktopLayout>
     );
   }
 
-
   void _scrollToFirstQuestion(BuildContext context) {
     widget.scrollController.animateTo(
       0.0, // Scroll to the very top
@@ -307,10 +306,7 @@ class _QuestionnaireDesktopLayoutState extends State<QuestionnaireDesktopLayout>
       curve: Curves.easeInOut,
     );
   }
-
 }
-
-
 
 class CustomProgressBar extends StatelessWidget {
   final int totalSteps;

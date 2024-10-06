@@ -14,43 +14,43 @@ class _PersonalityTypesDesktopLayoutState extends State<PersonalityTypesDesktopL
   final List<Map<String, String>> personalityTypes = [
     {
       "name": "Stufe 1: Anonymous",
-      "image": "assets/Anonymous.webp",
+      "image": "assets/Anonymous_unisex.png",
       "descriptionPath": "assets/auswertungen/Anonymous.txt",
     },
     {
       "name": "Stufe 2: Resident",
-      "image": "assets/Resident.webp",
+      "image": "assets/Resident_unisex.png",
       "descriptionPath": "assets/auswertungen/Resident.txt",
     },
     {
       "name": "Stufe 3: Explorer",
-      "image": "assets/Explorer.webp",
+      "image": "assets/Explorer_unisex.png",
       "descriptionPath": "assets/auswertungen/Explorer.txt",
     },
     {
       "name": "Stufe 4: Reacher",
-      "image": "assets/Reacher.webp",
+      "image": "assets/Reacher_unisex.png",
       "descriptionPath": "assets/auswertungen/Reacher.txt",
     },
     {
       "name": "Stufe 5: Traveller",
-      "image": "assets/Traveller.webp",
+      "image": "assets/Traveller_unisex.png",
       "descriptionPath": "assets/auswertungen/Traveller.txt",
     },
     {
       "name": "Stufe 6: Individual",
-      "image": "assets/Individual.webp",
+      "image": "assets/Individual_unisex.png",
       "descriptionPath": "assets/auswertungen/Individual.txt",
     },
     {
       "name": "Stufe 7: Adventurer",
-      "image": "assets/Adventurer.webp",
+      "image": "assets/Adventurer_unisex.png",
       "descriptionPath": "assets/auswertungen/Adventurer.txt",
     },
     {
       "name": "Stufe 8: Life Artist",
-      "image": "assets/Life Artist.webp",
-      "descriptionPath": "assets/auswertungen/LifeArtist.txt",
+      "image": "assets/life_artist_unisex.png",
+      "descriptionPath": "assets/auswertungen/Life Artist.txt",
     },
   ];
 

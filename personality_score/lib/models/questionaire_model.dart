@@ -507,6 +507,7 @@ Im letzten Fragensegment finden wir heraus, ob du eher der Stufe „Anonymous“
               onPressed: () {
                 reset();
                 Navigator.of(context).pop();
+                Navigator.of(context).pushNamed('/home');
               },
               child: Text('Abschließen',
                   style: TextStyle(
