@@ -302,7 +302,7 @@ class _QuestionnaireDesktopLayoutState extends State<QuestionnaireDesktopLayout>
   void _scrollToFirstQuestion(BuildContext context) {
     widget.scrollController.animateTo(
       0.0, // Scroll to the very top
-      duration: Duration(seconds: 1),
+      duration: Duration(milliseconds: 500),
       curve: Curves.easeInOut,
     );
   }
